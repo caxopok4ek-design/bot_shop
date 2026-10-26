@@ -225,27 +225,26 @@
             const removeItem = (id) => setCart(prev => prev.filter(item => item.id !== id));
 
             const handleProcessOrder = (checkoutData) => {
-                // ЖЕСТКИЙ ФИКС: Сначала показываем алерт, потом отправляем, потом закрываем!
-                if (tg && tg.showAlert) {
-                    tg.showAlert("Отправляю данные...", () => {
-                        const orderId = Math.floor(100000 + Math.random() * 900000);
-                        const payload = {
-                            orderId: orderId,
-                            items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
-                            total: checkoutData.total,
-                            phone: checkoutData.phone,
-                            delivery: checkoutData.delivery,
-                            address: checkoutData.address || '—',
-                            payment: checkoutData.payment
-                        };
+                const orderId = Math.floor(100000 + Math.random() * 900000);
+                const payload = {
+                    orderId: orderId,
+                    items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
+                    total: checkoutData.total,
+                    phone: checkoutData.phone,
+                    delivery: checkoutData.delivery,
+                    address: checkoutData.address || '—',
+                    payment: checkoutData.payment
+                };
 
-                        if (tg && typeof tg.sendData === 'function') {
-                            tg.sendData(JSON.stringify(payload));
-                            // ПРИНУДИТЕЛЬНОЕ ЗАКРЫТИЕ (ЗАСТАВЛЯЕТ ОТПРАВИТЬ)
-                            setTimeout(() => { if (tg) tg.close(); }, 100);
-                        }
-                    });
+                // Отправляем и закрываем без всяких окон
+                if (tg && typeof tg.sendData === 'function') {
+                    tg.sendData(JSON.stringify(payload));
+                    tg.close();
                 }
+
+                setLastOrder({ id: orderId, total: checkoutData.total });
+                setCart([]);
+                setTab('success');
             };
 
             const isCheckoutMode = tab === 'checkout' || tab === 'success';
