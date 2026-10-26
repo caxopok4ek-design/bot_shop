@@ -582,11 +582,34 @@
             const handleProcessOrder = (checkoutData) => {
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 const payload = {
-                    orderId, items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
-                    total: checkoutData.total, phone: checkoutData.phone,
-                    delivery: checkoutData.delivery, address: checkoutData.address || '—',
-                    payment: checkoutData.payment, bonusUsed: checkoutData.bonusUsed
+                    orderId: orderId,
+                    items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
+                    total: checkoutData.total,
+                    phone: checkoutData.phone,
+                    delivery: checkoutData.delivery,
+                    address: checkoutData.address || '—',
+                    payment: checkoutData.payment,
+                    bonusUsed: checkoutData.bonusUsed || 0
                 };
+
+                // Отправляем данные
+                if (tg && typeof tg.sendData === 'function') {
+                    tg.sendData(JSON.stringify(payload));
+                    
+                    // ЖДЕМ 1 СЕКУНДУ, ЧТОБЫ ДАННЫЕ УЛЕТЕЛИ, И ТОЛЬКО ПОТОМ ЗАКРЫВАЕМ
+                    setTimeout(() => {
+                        tg.close();
+                    }, 1000);
+                }
+
+                // Локально сохраняем для истории
+                const newOrder = { id: orderId, date: new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), items: [...cart], total: checkoutData.total, status: 'В обработке' };
+                setOrders(prev => [newOrder, ...prev]);
+                setLastOrder(newOrder);
+                setBonuses(prev => prev - checkoutData.bonusUsed + Math.floor(checkoutData.total * 0.05));
+                setCart([]);
+                setTab('success');
+            };
 
                 // КЛЮЧЕВОЙ МОМЕНТ: отправка в бота
                 if (tg && typeof tg.sendData === 'function') {
