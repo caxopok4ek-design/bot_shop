@@ -124,6 +124,7 @@
             const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
             const handleSendOrder = () => {
+alert("Кнопка нажата! Отправляю заказ...");
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 const payload = {
                     orderId: orderId,
