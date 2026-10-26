@@ -703,15 +703,14 @@
                         return;
                     }
 
-                                        // --- ОТПРАВКА В БОТА ---
-                    if (tg && typeof tg.sendData === 'function') {
-                        tg.sendData(JSON.stringify(payload));
-                        tg.close(); // <--- Принудительно закрываем окно!
-                    } else {
-                        if (tg && tg.showAlert) {
-                            tg.showAlert('ОШИБКА: sendData недоступен.');
-                        }
-                    }
+                                        // ---                  // --- ОТПРАВКА В БОТА ---
+                 if (tg && typeof tg.sendData === 'function') {
+                     tg.sendData(JSON.stringify(payload));
+                 } else {
+                     if (tg && tg.showAlert) {
+                         tg.showAlert('ОШИБКА: sendData недоступен.');
+                     }
+                 }
 
                     const newOrder = {
                         id: orderId,
