@@ -23,7 +23,7 @@
         
         .wheel-container { position: relative; width: 260px; height: 260px; margin: 0 auto; border-radius: 50%; border: 8px solid var(--surface); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .wheel { width: 100%; height: 100%; border-radius: 50%; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-        .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid var(--primary); z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid var(--primary); z-index: 10; }
     </style>
 
     <script>
@@ -67,10 +67,19 @@
             const [delivery, setDelivery] = useState('Самовывоз');
             const [address, setAddress] = useState('');
             
-            const [theme, setTheme] = useState(() => { try { return localStorage.getItem('smoky_theme') || 'dark'; } catch { return 'dark'; } });
+            const [theme, setTheme] = useState('dark');
 
             useEffect(() => {
-                fetch('./products.json').then(r => r.json()).then(data => { if (Array.isArray(data) && data.length) setProducts(data); }).catch(e => console.log(e));
+                try {
+                    const saved = localStorage.getItem('smoky_theme');
+                    if (saved) setTheme(saved);
+                } catch {}
+                
+                fetch('./products.json')
+                    .then(r => r.json())
+                    .then(data => { if (Array.isArray(data) && data.length) setProducts(data); })
+                    .catch(e => console.log(e));
+                
                 if (tg) { tg.ready(); tg.expand(); }
             }, []);
 
@@ -90,12 +99,11 @@
             const updateQty = (id, delta) => setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(0, item.qty + delta) } : item).filter(item => item.qty > 0));
             const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-                        const handleSendOrder = () => {
+            const handleSendOrder = () => {
                 const orderId = Math.floor(100000 + Math.random() * 900000);
-                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q"; // Токен бота
-                const ADMIN_ID = "8488865562"; // Твой ID
+                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
+                const ADMIN_ID = "8488865562";
 
-                // Красивое сообщение для админа
                 let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
                 text += `👤 <b>Имя:</b> ${name}\n`;
                 text += `📞 <b>Телефон:</b> ${phone}\n`;
@@ -107,31 +115,32 @@
                 });
                 text += `\n💰 <b>Итого: ${cartTotal} ₽</b>`;
 
-                // ПРЯМАЯ ОТПРАВКА В ТЕЛЕГРАМ (в обход sendData)
+                // Прямая отправка в Telegram API (в обход глючного sendData)
                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: ADMIN_ID,
-                        text: text,
-                        parse_mode: 'HTML'
-                    })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.ok) {
-                        console.log("✅ Заказ отправлен в Telegram напрямую!");
-                    } else {
-                        console.log("❌ Ошибка Telegram API:", data.description);
-                    }
-                })
-                .catch(err => console.log("❌ Ошибка сети:", err));
+                    body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
+                }).then(() => {
+                    console.log("✅ Заказ отправлен админу!");
+                }).catch(e => console.log("❌ Ошибка сети:", e));
                 
-                // Обновляем локально
                 setCart([]);
                 setCheckoutStep(false);
                 setTab('success');
             };
+
+            const renderContent = () => {
+                if (tab === 'success') {
+                    return (
+                        <div className="flex flex-col items-center justify-center h-[75vh] px-6 text-center">
+                            <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
+                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center"><Icons.Check c="w-8 h-8 text-white" /></div>
+                            </div>
+                            <h2 className="text-3xl font-black mb-2 text-textMain">Заказ принят!</h2>
+                            <p className="text-textMuted text-sm mb-6">Ожидайте подтверждения от магазина.</p>
+                            <button onClick={() => setTab('home')} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">На главную</button>
+                        </div>
+                    );
                 }
 
                 if (checkoutStep) {
