@@ -3,646 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Smoky Mountain | Ultimate App</title>
+    <title>Smoky Mountain</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <style>
-        :root {
-            --bg: #0b0c10; --surface: #171821; --surface-hover: #1f202d;
-            --text-main: #ffffff; --text-muted: #9ca3af; --border: rgba(255,255,255,0.05);
-            --primary: #ff3b5c; --primary-hover: #ff1a40;
-        }
-        .theme-light { --bg: #f3f4f6; --surface: #ffffff; --surface-hover: #f9fafb; --text-main: #111827; --text-muted: #6b7280; --border: rgba(0,0,0,0.08); }
-        .theme-space { --bg: #0a001a; --surface: #150a30; --surface-hover: #1f103f; --text-main: #f0e6ff; --text-muted: #9d8bc4; --border: rgba(138, 43, 226, 0.3); --primary: #a855f7; }
-        .theme-sea { --bg: #051923; --surface: #003554; --surface-hover: #004c75; --text-main: #e0f2fe; --text-muted: #7dd3fc; --border: rgba(56, 189, 248, 0.3); --primary: #06b6d4; }
-
-        body { background-color: var(--bg); color: var(--text-main); -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior-y: none; transition: background-color 0.3s, color 0.3s; }
+        body { background-color: #0b0c10; color: white; -webkit-tap-highlight-color: transparent; overflow: hidden; font-family: 'Manrope', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .glass-panel { background: var(--surface); opacity: 0.95; backdrop-filter: blur(20px); border-top: 1px solid var(--border); }
-        
-        .wheel-container { position: relative; width: 260px; height: 260px; margin: 0 auto; border-radius: 50%; border: 8px solid var(--surface); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .wheel { width: 100%; height: 100%; border-radius: 50%; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-        .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid var(--primary); z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
     </style>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Manrope', 'sans-serif'] },
-                    colors: {
-                        appBg: 'var(--bg)', surface: 'var(--surface)', surfaceHover: 'var(--surface-hover)',
-                        primary: 'var(--primary)', primaryHover: 'var(--primary-hover)',
-                        textMain: 'var(--text-main)', textMuted: 'var(--text-muted)', borderCol: 'var(--border)',
-                        accent: '#f59e0b', tgBlue: '#2AABEE',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
         const tg = window.Telegram?.WebApp;
 
         const Icons = {
             Home: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>,
             Grid: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>,
             Cart: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
-            Heart: ({c, fill}) => <svg className={c} width="24" height="24" fill={fill || "none"} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
+            Heart: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
             User: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
             Plus: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
             Minus: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14"/></svg>,
             Trash: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>,
-            Search: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
-            ChevronRight: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>,
-            X: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-            Flame: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
-            Sparkles: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
-            Users: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-            Gift: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>,
-            Star: ({c, fill}) => <svg className={c} width="24" height="24" fill={fill || "none"} stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
             Check: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
-            MapPin: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
             Store: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>,
-            CreditCard: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>,
-            Palette: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>,
-            Ticket: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>,
+            MapPin: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            Flame: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
         };
 
-        const WHEEL_PRIZES = [
-            { type: 'bonus', value: 50, label: '50 Б.', color: '#171821' },
-            { type: 'product', id: 1, label: 'Приз', color: '#ff3b5c' },
-            { type: 'bonus', value: 100, label: '100 Б.', color: '#171821' },
-            { type: 'product', id: 2, label: 'Приз', color: '#2AABEE' },
-            { type: 'bonus', value: 200, label: '200 Б.', color: '#171821' },
-            { type: 'product', id: 3, label: 'Приз', color: '#f59e0b' },
-            { type: 'bonus', value: 10, label: '10 Б.', color: '#171821' },
-            { type: 'product', id: 4, label: 'Приз', color: '#10b981' },
-        ];
+        const FALLBACK = [{ id: 1, title: 'Тестовый товар', category: 'Жидкости', price: 500, tag: 'NEW', desc: 'Описание', img: 'https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=600' }];
 
-        const Toast = ({ message, onClose }) => {
-            useEffect(() => { const t = setTimeout(onClose, 2500); return () => clearTimeout(t); }, [onClose]);
-            return (
-                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[200] animate-fade-in w-max max-w-[90vw]">
-                    <div className="bg-surface text-textMain px-5 py-3 rounded-2xl shadow-xl border border-primary/20 font-bold text-sm flex items-center gap-2">
-                        <Icons.Sparkles c="w-4 h-4 text-primary" /> {message}
-                    </div>
-                </div>
-            );
-        };
-
-        const Modal = ({ isOpen, onClose, title, children }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                    <div className="bg-surface text-textMain w-full max-w-md md:max-w-lg rounded-t-[2rem] md:rounded-[2rem] p-6 pb-safe shadow-2xl animate-slide-up border-t md:border border-borderCol max-h-[90vh] md:max-h-[85vh] overflow-y-auto hide-scrollbar" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-4 sticky top-0 bg-surface z-10 pb-2">
-                            <h2 className="text-xl font-extrabold">{title}</h2>
-                            <button onClick={onClose} className="p-2 bg-surfaceHover rounded-full hover:bg-black/10 active:scale-90 transition"><Icons.X c="w-5 h-5" /></button>
-                        </div>
-                        {children}
-                    </div>
-                </div>
-            );
-        };
-
-        const ProductCard = ({ product, isFav, onFav, onClick, onQuickAdd }) => (
-            <div className="bg-surface rounded-3xl p-2.5 border border-borderCol relative flex flex-col cursor-pointer transition-transform md:hover:scale-[1.02] active:scale-[0.97] shadow-sm" onClick={() => onClick(product)}>
-                <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-gray-800 mb-3">
-                    <img src={product.img} alt={product.title} className="w-full h-full object-cover" loading="lazy" />
-                    <div className="absolute top-2 left-2 flex flex-col gap-1">
-                        <span className="bg-primary text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">{product.tag}</span>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); onFav(product.id); }} className="absolute top-2 right-2 p-2 bg-black/40 backdrop-blur-md rounded-full hover:bg-black/60 active:scale-90 transition">
-                        <Icons.Heart c={`w-4 h-4 transition-colors ${isFav ? 'text-primary fill-primary' : 'text-white'}`}/>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); onQuickAdd(product); }} className="absolute bottom-2 right-2 w-9 h-9 bg-white text-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 active:scale-90 transition">
-                        <Icons.Plus c="w-5 h-5" />
-                    </button>
+        const ProductCard = ({ product, onQuickAdd }) => (
+            <div className="bg-[#171821] rounded-2xl p-2 border border-white/5 flex flex-col shadow-sm">
+                <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-gray-800 mb-2">
+                    <img src={product.img} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 left-2 bg-[#ff3b5c] text-white text-[10px] font-black px-2 py-1 rounded-md uppercase">{product.tag}</span>
+                    <button onClick={() => onQuickAdd(product)} className="absolute bottom-2 right-2 w-8 h-8 bg-white text-black rounded-full flex items-center justify-center shadow-lg"><Icons.Plus c="w-5 h-5" /></button>
                 </div>
                 <div className="px-1 flex-1 flex flex-col justify-between">
-                    <div>
-                        <div className="text-[10px] text-textMuted font-bold uppercase tracking-widest mb-1">{product.category}</div>
-                        <h3 className="text-sm font-extrabold text-textMain leading-tight line-clamp-2">{product.title}</h3>
-                    </div>
-                    <div className="mt-2 text-lg font-black text-textMain">{product.price} ₽</div>
+                    <h3 className="text-xs font-bold text-white leading-tight line-clamp-2">{product.title}</h3>
+                    <div className="mt-2 text-base font-black text-white">{product.price} ₽</div>
                 </div>
             </div>
         );
-
-        const HomeScreen = ({ PRODUCTS, setTab, openModal, favorites, toggleFav, quickAdd }) => (
-            <div className="pb-28 pt-2 space-y-6 max-w-6xl mx-auto">
-                <div className="mx-4 rounded-[2rem] overflow-hidden relative h-52 md:h-72 bg-surface border border-borderCol flex flex-col justify-end p-5 shadow-lg group cursor-pointer" onClick={() => openModal('roulette')}>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-surface"></div>
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=1200')] bg-cover bg-center opacity-40 mix-blend-overlay md:group-hover:scale-105 transition-transform duration-700"></div>
-                    <div className="relative z-10">
-                        <span className="bg-primary text-white text-[10px] md:text-sm font-black px-3 py-1 rounded-full uppercase mb-2 inline-block shadow-lg">Испытай удачу</span>
-                        <h2 className="text-2xl md:text-4xl font-black leading-tight mb-1 text-white">Колесо<br/>Фортуны</h2>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 px-4">
-                    <button onClick={() => openModal('roulette')} className="bg-surface border border-borderCol rounded-2xl p-4 flex flex-col items-center justify-center gap-2 active:scale-95 transition">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center"><Icons.Ticket c="w-6 h-6 text-primary" /></div>
-                        <span className="text-sm font-bold text-textMain">Рулетка</span>
-                    </button>
-                    <button onClick={() => setTab('profile')} className="bg-surface border border-borderCol rounded-2xl p-4 flex flex-col items-center justify-center gap-2 active:scale-95 transition">
-                        <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center"><Icons.Star c="w-6 h-6 text-accent" fill="currentColor"/></div>
-                        <span className="text-sm font-bold text-textMain">Бонусы</span>
-                    </button>
-                </div>
-
-                <div>
-                    <div className="px-4 flex justify-between items-center mb-3">
-                        <h3 className="text-xl md:text-2xl font-extrabold">Хиты продаж</h3>
-                        <button onClick={() => setTab('catalog')} className="text-sm font-bold text-primary active:scale-95 transition">Все <Icons.ChevronRight c="w-4 h-4 inline"/></button>
-                    </div>
-                    <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-2 md:grid md:grid-cols-3 md:overflow-visible">
-                        {PRODUCTS.slice(0, 3).map(p => (
-                            <div key={p.id} className="min-w-[150px] w-[150px] md:w-auto md:min-w-0">
-                                <ProductCard product={p} isFav={favorites.includes(p.id)} onFav={toggleFav} onClick={(p) => openModal('product', p)} onQuickAdd={quickAdd} />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-
-        const CatalogScreen = ({ PRODUCTS, openModal, favorites, toggleFav, quickAdd }) => {
-            const [cat, setCat] = useState('Все');
-            const [search, setSearch] = useState('');
-            const cats = ['Все', 'Жидкости', 'Одноразки'];
-            
-            const filtered = PRODUCTS.filter(p => {
-                const matchCat = cat === 'Все' || p.category === cat;
-                const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
-                return matchCat && matchSearch;
-            });
-
-            return (
-                <div className="pb-28 pt-4 max-w-6xl mx-auto">
-                    <div className="flex gap-2 px-4 overflow-x-auto hide-scrollbar mb-4">
-                        {cats.map(c => (
-                            <button key={c} onClick={() => setCat(c)} className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${cat === c ? 'bg-primary text-white shadow-lg' : 'bg-surface text-textMuted border border-borderCol'}`}>{c}</button>
-                        ))}
-                    </div>
-                    <div className="px-4 mb-5 relative">
-                        <Icons.Search c="w-5 h-5 absolute left-4 top-3.5 text-textMuted" />
-                        <input type="text" placeholder="Поиск..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-surface border border-borderCol rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium text-textMain focus:outline-none focus:border-primary transition-all" />
-                    </div>
-                    <div className="px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-                        {filtered.map(p => (
-                            <ProductCard key={p.id} product={p} isFav={favorites.includes(p.id)} onFav={toggleFav} onClick={(p) => openModal('product', p)} onQuickAdd={quickAdd} />
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        const CartScreen = ({ cart, updateQty, removeItem, goToCheckout }) => {
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            if (cart.length === 0) return (
-                <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center">
-                    <div className="w-24 h-24 bg-surface rounded-full flex items-center justify-center mb-6"><Icons.Cart c="w-10 h-10 text-textMuted" /></div>
-                    <h2 className="text-2xl font-black mb-2 text-textMain">Корзина пуста</h2>
-                </div>
-            );
-            return (
-                <div className="pb-32 pt-4 px-4 max-w-3xl mx-auto">
-                    <h2 className="text-2xl font-black mb-5 text-textMain">Корзина</h2>
-                    <div className="space-y-3">
-                        {cart.map((item) => (
-                            <div key={item.id} className="bg-surface p-3 md:p-4 rounded-3xl flex gap-3 md:gap-5 border border-borderCol relative shadow-sm">
-                                <img src={item.img} className="w-20 h-24 md:w-24 md:h-28 rounded-2xl object-cover" />
-                                <div className="flex flex-col justify-between flex-1 py-1">
-                                    <div>
-                                        <h4 className="font-bold text-sm md:text-lg leading-tight line-clamp-2 text-textMain">{item.title}</h4>
-                                        <p className="text-primary font-black mt-1 md:text-lg">{item.price} ₽</p>
-                                    </div>
-                                    <div className="flex items-center gap-3 mt-2">
-                                        <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 bg-surfaceHover rounded-full flex items-center justify-center active:scale-90 transition"><Icons.Minus c="w-4 h-4"/></button>
-                                        <span className="font-bold text-sm md:text-base w-4 text-center">{item.qty}</span>
-                                        <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 bg-surfaceHover rounded-full flex items-center justify-center active:scale-90 transition"><Icons.Plus c="w-4 h-4"/></button>
-                                    </div>
-                                </div>
-                                <button onClick={() => removeItem(item.id)} className="absolute top-3 right-3 p-1.5 text-textMuted hover:text-primary transition active:scale-90"><Icons.Trash c="w-4 h-4"/></button>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="fixed bottom-[80px] left-0 right-0 p-4 bg-appBg/95 backdrop-blur-xl border-t border-borderCol max-w-md md:max-w-3xl mx-auto md:rounded-t-2xl">
-                        <div className="flex justify-between items-center mb-3 px-2">
-                            <span className="text-textMuted font-medium">Итого:</span>
-                            <span className="text-2xl font-black text-textMain">{total} ₽</span>
-                        </div>
-                        <button onClick={goToCheckout} className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-lg active:scale-[0.98] transition-all">Перейти к оформлению</button>
-                    </div>
-                </div>
-            );
-        };
-
-        const CheckoutScreen = ({ cart, tgUser, onBack, onSubmit, bonuses }) => {
-            const [name, setName] = useState(tgUser?.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : '');
-            const [phone, setPhone] = useState('');
-            const [delivery, setDelivery] = useState('Самовывоз');
-            const [address, setAddress] = useState('');
-            const [payment, setPayment] = useState('При получении');
-            const [useBonuses, setUseBonuses] = useState(false);
-            
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const maxBonusToUse = Math.min(bonuses, Math.floor(subtotal * 0.3));
-            const bonusDiscount = useBonuses ? maxBonusToUse : 0;
-            const total = Math.max(0, subtotal - bonusDiscount);
-
-            const isFormValid = name.trim().length > 1 && phone.trim().length > 5 && (delivery === 'Самовывоз' || address.trim().length > 3);
-
-            const handlePhoneChange = (e) => {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.length > 0) {
-                    if (val[0] === '8') val = '7' + val.slice(1);
-                    let formatted = '+7 ';
-                    if (val.length > 1) formatted += `(${val.slice(1, 4)}`;
-                    if (val.length > 4) formatted += `) ${val.slice(4, 7)}`;
-                    if (val.length > 7) formatted += `-${val.slice(7, 9)}`;
-                    if (val.length > 9) formatted += `-${val.slice(9, 11)}`;
-                    setPhone(formatted);
-                } else setPhone('');
-            };
-
-            return (
-                <div className="pb-28 pt-4 px-4 max-w-2xl mx-auto w-full">
-                    <div className="flex items-center gap-3 mb-6">
-                        <button onClick={onBack} className="p-2 bg-surface rounded-full active:scale-90 transition border border-borderCol"><Icons.ChevronRight c="w-5 h-5 rotate-180" /></button>
-                        <h2 className="text-2xl font-black text-textMain">Оформление</h2>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div className="space-y-3 bg-surface p-5 rounded-3xl border border-borderCol">
-                            <h3 className="text-sm font-bold text-textMuted uppercase tracking-wider ml-1">Получатель</h3>
-                            <input type="text" placeholder="Ваше имя" value={name} onChange={e => setName(e.target.value)} className="w-full bg-appBg border border-borderCol rounded-2xl p-4 text-sm font-medium text-textMain focus:outline-none focus:border-primary transition-colors" />
-                            <input type="tel" placeholder="+7 (___) ___-__-__" value={phone} onChange={handlePhoneChange} className="w-full bg-appBg border border-borderCol rounded-2xl p-4 text-sm font-medium text-textMain focus:outline-none focus:border-primary transition-colors" />
-                        </div>
-
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-bold text-textMuted uppercase tracking-wider ml-1">Способ получения</h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => setDelivery('Самовывоз')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${delivery === 'Самовывоз' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface border-borderCol text-textMuted'}`}>
-                                    <Icons.Store c="w-6 h-6" /> <span className="text-xs font-bold">Самовывоз</span>
-                                </button>
-                                <button onClick={() => setDelivery('Встреча')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${delivery === 'Встреча' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface border-borderCol text-textMuted'}`}>
-                                    <Icons.MapPin c="w-6 h-6" /> <span className="text-xs font-bold">Встреча</span>
-                                </button>
-                            </div>
-                            {delivery === 'Встреча' && (
-                                <input type="text" placeholder="Удобное место встречи" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-surface border border-borderCol rounded-2xl p-4 text-sm font-medium text-textMain focus:outline-none focus:border-primary transition-colors animate-fade-in" />
-                            )}
-                        </div>
-
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-bold text-textMuted uppercase tracking-wider ml-1">Оплата</h3>
-                            <div className="bg-surface rounded-2xl border border-borderCol overflow-hidden">
-                                <button onClick={() => setPayment('При получении')} className="w-full flex items-center justify-between p-4 border-b border-borderCol">
-                                    <div className="flex items-center gap-3"><Icons.CreditCard c="w-5 h-5 text-textMuted"/> <span className="text-sm font-medium text-textMain">При получении</span></div>
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${payment === 'При получении' ? 'border-primary' : 'border-textMuted'}`}>{payment === 'При получении' && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}</div>
-                                </button>
-                                <button onClick={() => setPayment('Telegram Stars')} className="w-full flex items-center justify-between p-4">
-                                    <div className="flex items-center gap-3"><Icons.Star c="w-5 h-5 text-tgBlue"/> <span className="text-sm font-medium text-textMain">Telegram Stars</span></div>
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${payment === 'Telegram Stars' ? 'border-tgBlue' : 'border-textMuted'}`}>{payment === 'Telegram Stars' && <div className="w-2.5 h-2.5 bg-tgBlue rounded-full"></div>}</div>
-                                </button>
-                            </div>
-                        </div>
-
-                        {bonuses > 0 && (
-                            <div className="bg-surface rounded-2xl border border-borderCol p-4 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Icons.Sparkles c="w-5 h-5 text-accent" />
-                                    <div>
-                                        <div className="text-sm font-bold text-textMain">Списать бонусы</div>
-                                        <div className="text-[10px] text-textMuted">Доступно: {maxBonusToUse} Б.</div>
-                                    </div>
-                                </div>
-                                <button onClick={() => setUseBonuses(!useBonuses)} className={`w-12 h-6 rounded-full transition-colors relative ${useBonuses ? 'bg-primary' : 'bg-surfaceHover border border-borderCol'}`}>
-                                    <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${useBonuses ? 'left-[26px]' : 'left-[2px]'}`}></div>
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="fixed bottom-[80px] left-0 right-0 p-4 bg-appBg/95 backdrop-blur-xl border-t border-borderCol max-w-md md:max-w-2xl mx-auto md:rounded-t-2xl">
-                        <div className="space-y-1 mb-3 px-2">
-                            <div className="flex justify-between text-xs text-textMuted"><span>Товары:</span><span>{subtotal} ₽</span></div>
-                            {useBonuses && <div className="flex justify-between text-xs text-green-500"><span>Скидка:</span><span>-{bonusDiscount} ₽</span></div>}
-                            <div className="flex justify-between text-lg font-black pt-1 text-textMain"><span>Итого:</span><span>{total} ₽</span></div>
-                        </div>
-                        <button onClick={() => onSubmit({ name, phone, delivery, address, payment, total, bonusUsed: bonusDiscount })} disabled={!isFormValid} className={`w-full py-4 rounded-2xl font-black text-lg transition-all ${isFormValid ? 'bg-primary text-white shadow-lg' : 'bg-surfaceHover text-textMuted'}`}>
-                            Подтвердить заказ
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        const SuccessScreen = ({ orderData, onGoHome }) => (
-            <div className="flex flex-col items-center justify-center h-[75vh] px-6 text-center">
-                <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-lg"><Icons.Check c="w-8 h-8 text-white" /></div>
-                </div>
-                <h2 className="text-3xl font-black mb-2 text-textMain">Заказ принят!</h2>
-                <p className="text-textMuted text-sm mb-6">Ожидайте подтверждения от магазина.</p>
-                <div className="bg-surface rounded-2xl p-4 w-full max-w-[280px] mb-8 border border-borderCol">
-                    <div className="text-xs text-textMuted mb-1">Номер вашего заказа:</div>
-                    <div className="text-2xl font-black tracking-widest text-primary">#{orderData?.id}</div>
-                    <div className="text-xs text-textMuted mt-2">Сумма: {orderData?.total} ₽</div>
-                </div>
-                <button onClick={onGoHome} className="w-full max-w-[280px] bg-primary py-4 rounded-2xl font-black text-white">На главную</button>
-            </div>
-        );
-
-        const RouletteModal = ({ isOpen, onClose, bonuses, onSpin, quickAdd, showToast, PRODUCTS }) => {
-            const [isSpinning, setIsSpinning] = useState(false);
-            const [rotation, setRotation] = useState(0);
-            const [winner, setWinner] = useState(null);
-
-            const spinWheel = () => {
-                if (isSpinning) return;
-                if (bonuses < 100) { showToast("Недостаточно бонусов (нужно 100)"); return; }
-                
-                setIsSpinning(true);
-                setWinner(null);
-                
-                const winIndex = Math.floor(Math.random() * WHEEL_PRIZES.length);
-                const prize = WHEEL_PRIZES[winIndex];
-                const targetAngle = 360 * 5 + (360 - (winIndex * 45));
-                
-                setRotation(targetAngle);
-
-                setTimeout(() => {
-                    setIsSpinning(false);
-                    setWinner(prize);
-                    
-                    if (prize.type === 'bonus') {
-                        onSpin(prize.value);
-                    } else if (prize.type === 'product') {
-                        const product = PRODUCTS.find(p => p.id === prize.id) || PRODUCTS[0];
-                        if (product) quickAdd(product);
-                    }
-                    if (tg) tg.HapticFeedback.notificationOccurred('success');
-                }, 4200);
-            };
-
-            return (
-                <Modal isOpen={isOpen} onClose={onClose} title="Колесо Фортуны">
-                    <div className="flex flex-col items-center">
-                        <div className="flex justify-between w-full mb-6 bg-appBg p-3 rounded-xl border border-borderCol">
-                            <span className="text-sm font-bold text-textMuted">Ваши бонусы:</span>
-                            <span className="text-sm font-black text-accent flex items-center gap-1"><Icons.Star c="w-4 h-4" fill="currentColor"/> {bonuses}</span>
-                        </div>
-
-                        <div className="wheel-container my-4">
-                            <div className="wheel-pointer"></div>
-                            <div className="wheel" style={{ transform: `rotate(${rotation}deg)`, background: `conic-gradient(${WHEEL_PRIZES.map((p, i) => `${p.color} ${i * 45}deg ${(i + 1) * 45}deg`).join(', ')})` }}>
-                                {WHEEL_PRIZES.map((p, i) => (
-                                    <div key={i} className="absolute top-0 left-1/2 w-1/2 h-full origin-left flex items-center justify-center pointer-events-none" style={{ transform: `rotate(${i * 45 + 22.5}deg)` }}>
-                                        <span className="text-white text-[10px] font-black ml-4 transform -rotate-90">{p.label}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {winner && (
-                            <div className="mt-4 text-center animate-pop-in w-full">
-                                <div className="bg-green-500/10 border border-green-500/30 p-3 rounded-xl mb-3">
-                                    <div className="text-sm font-bold text-green-500">Вы выиграли:</div>
-                                    <div className="text-lg font-black text-textMain">{winner.type === 'bonus' ? `${winner.value} Бонусов` : 'Товар добавлен в корзину!'}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        <button onClick={spinWheel} disabled={isSpinning || bonuses < 100} className={`mt-4 w-full py-4 rounded-2xl font-black text-lg transition-all ${isSpinning || bonuses < 100 ? 'bg-surfaceHover text-textMuted' : 'bg-primary text-white shadow-lg'}`}>
-                            {isSpinning ? 'Крутится...' : bonuses < 100 ? 'Нужно 100 Б.' : 'Крутить (100 Б.)'}
-                        </button>
-                    </div>
-                </Modal>
-            );
-        };
-
-        const ProfileScreen = ({ tgUser, showToast, openModal, ordersCount, bonuses, theme, setTheme }) => {
-            const themes = [
-                { id: 'dark', icon: '🌙', label: 'Темная' },
-                { id: 'light', icon: '☀️', label: 'Светлая' },
-                { id: 'space', icon: '🌌', label: 'Космос' },
-                { id: 'sea', icon: '🌊', label: 'Море' },
-            ];
-
-            return (
-                <div className="pb-28 pt-4 space-y-4 max-w-3xl mx-auto">
-                    <div className="mx-4 bg-surface rounded-[2rem] p-5 flex items-center gap-4 border border-borderCol relative overflow-hidden">
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
-                        {tgUser?.photo_url ? (
-                            <img src={tgUser.photo_url} className="w-16 h-16 rounded-full object-cover border-2 border-primary" />
-                        ) : (
-                            <div className="w-16 h-16 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-2xl font-black shadow-lg text-white">{tgUser?.first_name?.[0] || 'U'}</div>
-                        )}
-                        <div className="relative z-10">
-                            <h2 className="text-xl font-black text-textMain">{tgUser?.first_name || 'Гость'}</h2>
-                            <p className="text-xs text-textMuted bg-appBg px-2 py-1 rounded-md inline-block mt-1 border border-borderCol">@{tgUser?.username || 'user'}</p>
-                        </div>
-                    </div>
-
-                    <div className="mx-4 grid grid-cols-2 gap-3">
-                        <div className="bg-surface p-4 rounded-3xl border border-accent/20">
-                            <div className="text-[10px] text-accent font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Icons.Star c="w-3 h-3" fill="currentColor"/> Бонусы</div>
-                            <div className="text-2xl font-black text-textMain">{bonuses}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-3xl border border-tgBlue/20">
-                            <div className="text-[10px] text-tgBlue font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Icons.Sparkles c="w-3 h-3"/> Заказы</div>
-                            <div className="text-2xl font-black text-textMain">{ordersCount}</div>
-                        </div>
-                    </div>
-
-                    <div className="mx-4 bg-surface rounded-[2rem] p-5 border border-borderCol shadow-lg">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center"><Icons.Palette c="w-5 h-5 text-primary"/></div>
-                            <div><h3 className="text-sm font-bold text-textMain">Оформление</h3><p className="text-[10px] text-textMuted">Выберите тему</p></div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-2">
-                            {themes.map(t => (
-                                <button key={t.id} onClick={() => setTheme(t.id)} className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${theme === t.id ? 'border-primary bg-primary/10' : 'border-borderCol bg-appBg'}`}>
-                                    <span className="text-xl">{t.icon}</span>
-                                    <span className="text-[10px] font-bold text-textMain">{t.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
 
         const App = () => {
             const [tab, setTab] = useState('home');
-            const [modal, setModal] = useState(null);
-            const [toast, setToast] = useState(null);
-            const [tgUser, setTgUser] = useState(null);
-            const [favorites, setFavorites] = useState([]);
             const [cart, setCart] = useState([]);
+            const [PRODUCTS, setProducts] = useState(FALLBACK);
             const [lastOrder, setLastOrder] = useState(null);
-            const [PRODUCTS, setProducts] = useState([]);
-            
-            // Безопасное сохранение настроек (чтобы не было черного экрана)
-            const [theme, setTheme] = useState(() => {
-                try { return localStorage.getItem('smoky_theme') || 'dark'; } catch { return 'dark'; }
-            });
-            const [bonuses, setBonuses] = useState(() => {
-                try { return Number(localStorage.getItem('smoky_bonuses')) || 500; } catch { return 500; }
-            });
-            const [orders, setOrders] = useState(() => {
-                try { const s = localStorage.getItem('smoky_orders'); return s ? JSON.parse(s) : []; } catch { return []; }
-            });
 
+            // Загрузка товаров
             useEffect(() => {
                 fetch('./products.json')
                     .then(r => r.json())
                     .then(data => {
                         if (Array.isArray(data) && data.length) setProducts(data);
-                        else setProducts([{ id: 1, title: 'Тестовый товар', category: 'Жидкости', price: 500, tag: 'NEW', desc: 'Описание', img: 'https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=600' }]);
                     })
-                    .catch(() => setProducts([{ id: 1, title: 'Тестовый товар', category: 'Жидкости', price: 500, tag: 'NEW', desc: 'Описание', img: 'https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=600' }]));
+                    .catch(e => console.log("Ошибка загрузки товаров:", e));
+                
+                if (tg) { tg.ready(); tg.expand(); }
             }, []);
 
-            useEffect(() => {
-                try {
-                    localStorage.setItem('smoky_theme', theme);
-                    localStorage.setItem('smoky_bonuses', bonuses);
-                    localStorage.setItem('smoky_orders', JSON.stringify(orders));
-                    document.body.className = theme === 'dark' ? '' : `theme-${theme}`;
-                } catch {}
-            }, [theme, bonuses, orders]);
-
-            useEffect(() => {
-                if (tg) {
-                    tg.ready(); tg.expand();
-                    if (tg.initDataUnsafe?.user) setTgUser(tg.initDataUnsafe.user);
-                }
-            }, []);
-
-            const showToast = (msg) => setToast(msg);
-
-            const toggleFav = (id) => setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
-            
             const quickAdd = (product) => {
                 setCart(prev => {
                     const existing = prev.find(item => item.id === product.id);
                     if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
                     return [...prev, { ...product, qty: 1 }];
                 });
-                showToast("Товар добавлен");
                 if (tg) tg.HapticFeedback.impactOccurred('medium');
             };
 
             const updateQty = (id, delta) => setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(0, item.qty + delta) } : item).filter(item => item.qty > 0));
-            const removeItem = (id) => setCart(prev => prev.filter(item => item.id !== id));
+            
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-            const handleProcessOrder = (checkoutData) => {
+            const handleCheckout = () => {
+                // СБОР ДАННЫХ
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 const payload = {
                     orderId: orderId,
                     items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
-                    total: checkoutData.total,
-                    phone: checkoutData.phone,
-                    delivery: checkoutData.delivery,
-                    address: checkoutData.address || '—',
-                    payment: checkoutData.payment,
-                    bonusUsed: checkoutData.bonusUsed || 0
+                    total: cartTotal,
+                    phone: "+7 999 000-00-00", // Тестовый телефон для проверки
+                    delivery: "Самовывоз",
+                    address: "—",
+                    payment: "При получении"
                 };
 
-                // Отправляем данные
+                // ОТПРАВКА В БОТА
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
-                    setTimeout(() => { if (tg) tg.close(); }, 1000);
+                    setTimeout(() => { tg.close(); }, 500); // Закрываем через полсекунды
+                } else {
+                    alert("Ошибка: отправка доступна только из Telegram (не из браузера).");
                 }
 
-                // Локально сохраняем для истории
-                const newOrder = { id: orderId, date: new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), items: [...cart], total: checkoutData.total, status: 'В обработке' };
-                setOrders(prev => [newOrder, ...prev]);
-                setLastOrder(newOrder);
-                setBonuses(prev => prev - checkoutData.bonusUsed + Math.floor(checkoutData.total * 0.05));
+                setLastOrder(payload);
                 setCart([]);
                 setTab('success');
             };
 
-            const handleSpinResult = (bonusWon) => setBonuses(prev => prev - 100 + bonusWon);
-            const isCheckoutMode = tab === 'checkout' || tab === 'success';
-
             return (
-                <div className="min-h-screen w-full bg-appBg flex items-center justify-center p-0 md:p-6 overflow-hidden transition-colors duration-300">
-                    <div className="w-full max-w-md md:max-w-6xl h-screen md:h-[90vh] relative shadow-2xl overflow-hidden bg-appBg md:rounded-[3rem] border-0 md:border border-borderCol flex flex-col">
+                <div className="min-h-screen bg-[#0b0c10] flex justify-center">
+                    <div className="w-full max-w-md h-screen relative flex flex-col">
                         
-                        {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+                        <div className="p-4 bg-[#0b0c10] border-b border-white/5 flex items-center gap-2">
+                            <Icons.Flame c="w-6 h-6 text-[#ff3b5c]" />
+                            <h1 className="text-xl font-black text-white">SMOKY</h1>
+                        </div>
 
-                        {!isCheckoutMode && (
-                            <div className="flex justify-between items-center p-5 pt-8 md:pt-5 sticky top-0 z-40 bg-appBg/80 backdrop-blur-xl border-b border-borderCol">
-                                <h1 className="text-xl font-black tracking-wider flex items-center gap-2 text-textMain"><Icons.Flame c="w-6 h-6 text-primary" /> SMOKY</h1>
-                            </div>
-                        )}
-
-                        <main className={`flex-1 overflow-y-auto hide-scrollbar ${isCheckoutMode ? 'pb-0' : 'pb-24 md:pb-28'}`}>
-                            {tab === 'home' && <HomeScreen PRODUCTS={PRODUCTS} setTab={setTab} openModal={(t, d) => setModal({type: t, data: d})} favorites={favorites} toggleFav={toggleFav} quickAdd={quickAdd} />}
-                            {tab === 'catalog' && <CatalogScreen PRODUCTS={PRODUCTS} openModal={(t, d) => setModal({type: t, data: d})} favorites={favorites} toggleFav={toggleFav} quickAdd={quickAdd} />}
-                            {tab === 'cart' && <CartScreen cart={cart} updateQty={updateQty} removeItem={removeItem} goToCheckout={() => setTab('checkout')} />}
-                            {tab === 'checkout' && <CheckoutScreen cart={cart} tgUser={tgUser} onBack={() => setTab('cart')} onSubmit={handleProcessOrder} bonuses={bonuses} />}
-                            {tab === 'success' && <SuccessScreen orderData={lastOrder} onGoHome={() => setTab('home')} />}
-                            {tab === 'profile' && <ProfileScreen tgUser={tgUser} showToast={showToast} openModal={(t) => setModal({type: t})} ordersCount={orders.length} bonuses={bonuses} theme={theme} setTheme={setTheme} />}
-                        </main>
-
-                        {!isCheckoutMode && (
-                            <div className="w-full absolute bottom-0 glass-panel pb-safe pt-2 px-4 rounded-t-[2rem] z-50">
-                                <div className="flex justify-between md:justify-center md:gap-16 items-center pb-2 max-w-md mx-auto">
-                                    {[
-                                        { id: 'home', icon: Icons.Home, label: 'Главная' },
-                                        { id: 'catalog', icon: Icons.Grid, label: 'Каталог' },
-                                        { id: 'cart', icon: Icons.Cart, label: 'Корзина', count: cart.reduce((s,i)=>s+i.qty,0) },
-                                        { id: 'profile', icon: Icons.User, label: 'Профиль' }
-                                    ].map(t => {
-                                        const isActive = tab === t.id;
-                                        return (
-                                            <button key={t.id} onClick={() => setTab(t.id)} className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors relative ${isActive ? 'text-primary' : 'text-textMuted'}`}>
-                                                <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-primary/10' : ''}`}>
-                                                    <t.icon c="w-6 h-6" />
-                                                </div>
-                                                <span className="text-[10px] font-bold">{t.label}</span>
-                                                {t.count > 0 && <span className="absolute top-0 right-1 bg-primary text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-surface">{t.count}</span>}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        <Modal isOpen={modal?.type === 'product'} onClose={() => setModal(null)} title="О товаре">
-                            {modal?.data && (
-                                <div className="flex flex-col gap-4">
-                                    <img src={modal.data.img} className="w-full aspect-square rounded-2xl object-cover" />
-                                    <div>
-                                        <h3 className="text-2xl font-black leading-tight mb-2 text-textMain">{modal.data.title}</h3>
-                                        <p className="text-textMuted text-sm mb-4">{modal.data.desc}</p>
-                                        <div className="flex items-center justify-between bg-surfaceHover p-4 rounded-2xl mb-4">
-                                            <span className="text-2xl font-black text-textMain">{modal.data.price} ₽</span>
-                                        </div>
-                                        <button onClick={() => { quickAdd(modal.data); setModal(null); }} className="w-full bg-primary py-4 rounded-2xl font-black text-lg text-white shadow-lg active:scale-95 transition-all">В корзину</button>
-                                    </div>
+                        <main className="flex-1 overflow-y-auto p-4 pb-24">
+                            {tab === 'home' && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {PRODUCTS.map(p => <ProductCard key={p.id} product={p} onQuickAdd={quickAdd} />)}
                                 </div>
                             )}
-                        </Modal>
 
-                        <RouletteModal isOpen={modal?.type === 'roulette'} onClose={() => setModal(null)} bonuses={bonuses} onSpin={handleSpinResult} quickAdd={quickAdd} showToast={showToast} PRODUCTS={PRODUCTS} />
+                            {tab === 'cart' && (
+                                <div>
+                                    <h2 className="text-xl font-black mb-4 text-white">Корзина</h2>
+                                    {cart.length === 0 ? (
+                                        <p className="text-gray-400 text-center mt-10">Корзина пуста</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {cart.map(item => (
+                                                <div key={item.id} className="bg-[#171821] p-3 rounded-2xl flex gap-3 border border-white/5">
+                                                    <img src={item.img} className="w-16 h-20 rounded-lg object-cover" />
+                                                    <div className="flex-1 flex flex-col justify-between">
+                                                        <h4 className="text-sm font-bold text-white line-clamp-1">{item.title}</h4>
+                                                        <div className="flex items-center justify-between mt-2">
+                                                            <span className="text-[#ff3b5c] font-black">{item.price} ₽</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 bg-black/30 rounded flex items-center justify-center text-white"><Icons.Minus c="w-3 h-3"/></button>
+                                                                <span className="text-white text-sm">{item.qty}</span>
+                                                                <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 bg-black/30 rounded flex items-center justify-center text-white"><Icons.Plus c="w-3 h-3"/></button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <div className="bg-[#171821] p-4 rounded-2xl border border-white/5 mt-4">
+                                                <div className="flex justify-between text-white font-black text-lg mb-4">
+                                                    <span>Итого:</span>
+                                                    <span>{cartTotal} ₽</span>
+                                                </div>
+                                                <button onClick={handleCheckout} className="w-full bg-[#ff3b5c] text-white py-3 rounded-xl font-bold text-lg">Оформить заказ</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {tab === 'success' && (
+                                <div className="text-center mt-20">
+                                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Icons.Check c="w-10 h-10 text-green-500" />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-white mb-2">Заказ отправлен!</h2>
+                                    <p className="text-gray-400 text-sm mb-6">Номер: #{lastOrder?.id}</p>
+                                    <button onClick={() => setTab('home')} className="bg-white text-black px-6 py-2 rounded-xl font-bold">На главную</button>
+                                </div>
+                            )}
+                        </main>
+
+                        <div className="absolute bottom-0 w-full bg-[#171821] border-t border-white/5 flex justify-around p-3 pb-6">
+                            <button onClick={() => setTab('home')} className={`flex flex-col items-center gap-1 ${tab === 'home' ? 'text-[#ff3b5c]' : 'text-gray-500'}`}><Icons.Home c="w-6 h-6" /><span className="text-[10px] font-bold">Главная</span></button>
+                            <button onClick={() => setTab('cart')} className={`flex flex-col items-center gap-1 relative ${tab === 'cart' ? 'text-[#ff3b5c]' : 'text-gray-500'}`}>
+                                <Icons.Cart c="w-6 h-6" />
+                                <span className="text-[10px] font-bold">Корзина</span>
+                                {cart.length > 0 && <span className="absolute -top-1 -right-2 bg-[#ff3b5c] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{cart.reduce((s,i)=>s+i.qty,0)}</span>}
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
