@@ -130,18 +130,43 @@
                     payment: "При получении"
                 };
 
-                // Отправка в бота через Telegram API
+                // 1. Отправка через нативный метод Telegram
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
-                    // Даем 1 секунду, чтобы данные улетели, и только потом закрываем
-                    setTimeout(() => { tg.close(); }, 1000);
-                } else {
-                    alert("Ошибка: Вы открыли приложение не через кнопку в боте!");
                 }
+
+                // 2. Страховка: отправка напрямую через ТВОЙ Cloudflare Worker
+                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
+                const ADMIN_ID = "8488865562";
+                const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
                 
+                let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
+                text += `👤 <b>Имя:</b> ${name}\n📞 <b>Телефон:</b> ${phone}\n`;
+                text += `🚚 <b>Способ:</b> ${delivery}\n`;
+                if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
+                text += `\n📦 <b>Товары:</b>\n`;
+                cart.forEach(item => text += `  • ${item.title} × ${item.qty} = ${item.price * item.qty} ₽\n`);
+                text += `\n💰 <b>Итого: ${cartTotal} ₽</b>`;
+
+                fetch(`${WORKER_URL}/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.ok) {
+                        console.log("✅ Заказ отправлен через прокси!");
+                    } else {
+                        console.log("❌ Ошибка API:", data.description);
+                    }
+                })
+                .catch(err => console.log("❌ Ошибка сети:", err));
+
                 setCart([]);
                 setCheckoutStep(false);
                 setTab('success');
+                setTimeout(() => { if(tg) tg.close(); }, 500);
             };
 
             const renderContent = () => {
