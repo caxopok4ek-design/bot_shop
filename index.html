@@ -33,7 +33,13 @@
     </script>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div style="color: white; text-align: center; padding-top: 50px; font-family: sans-serif;">
+            <h1 style="color: #ff3b5c;">SMOKY</h1>
+            <p>Загрузка магазина...</p>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">Если вы видите это дольше 5 секунд, у вас нет связи с интернетом или вы открыли на ПК (включите VPN).</p>
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
@@ -101,28 +107,22 @@
 
             const handleSendOrder = () => {
                 const orderId = Math.floor(100000 + Math.random() * 900000);
-                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
-                const ADMIN_ID = "8488865562";
+                const payload = {
+                    orderId: orderId,
+                    items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
+                    total: cartTotal,
+                    phone: phone,
+                    delivery: delivery,
+                    address: delivery === 'Встреча' ? address : '—',
+                    payment: "При получении"
+                };
 
-                let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
-                text += `👤 <b>Имя:</b> ${name}\n`;
-                text += `📞 <b>Телефон:</b> ${phone}\n`;
-                text += `🚚 <b>Способ:</b> ${delivery}\n`;
-                if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
-                text += `\n📦 <b>Товары:</b>\n`;
-                cart.forEach(item => {
-                    text += `  • ${item.title} × ${item.qty} = ${item.price * item.qty} ₽\n`;
-                });
-                text += `\n💰 <b>Итого: ${cartTotal} ₽</b>`;
-
-                // Прямая отправка в Telegram API (в обход глючного sendData)
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
-                }).then(() => {
-                    console.log("✅ Заказ отправлен админу!");
-                }).catch(e => console.log("❌ Ошибка сети:", e));
+                if (tg && typeof tg.sendData === 'function') {
+                    tg.sendData(JSON.stringify(payload));
+                    setTimeout(() => { tg.close(); }, 300);
+                } else {
+                    alert("Вы открыли приложение не через кнопку в боте. Откройте с телефона через кнопку 'Открыть Mini App'");
+                }
                 
                 setCart([]);
                 setCheckoutStep(false);
