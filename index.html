@@ -696,14 +696,73 @@
                     };
 
                     if (checkoutData.payment === 'stars') {
-                        if (tg && tg.sendData) {
-                            tg.sendData(JSON.stringify({
-                                action: 'pay_stars',
-                                total: checkoutData.total
-                            }));
-                        }
-                        if (tg) tg.MainButton.hideProgress();
-                        return;
+                       const handleProcessOrder = async (checkoutData) => {
+    if (tg) tg.MainButton.showProgress();
+
+    try {
+        // --- ДИАГНОСТИКА ---
+        if (tg && tg.showAlert) {
+            tg.showAlert('Отладка: Mini App открыт, отправляю данные...');
+        }
+
+        const orderId = Math.floor(100000 + Math.random() * 900000);
+
+        const payload = {
+            orderId: orderId,
+            items: cart.map(item => ({
+                id: item.id,
+                title: item.title,
+                price: item.price,
+                qty: item.qty
+            })),
+            total: checkoutData.total,
+            phone: checkoutData.phone,
+            delivery: checkoutData.delivery === 'courier' ? 'Курьер' : 'Самовывоз',
+            address: checkoutData.address || '—',
+            payment: checkoutData.payment === 'stars' ? 'Telegram Stars' : 'При получении'
+        };
+
+        console.log("PAYLOAD:", payload); // выведет в консоль
+
+        // --- ОТПРАВКА ---
+        if (tg && typeof tg.sendData === 'function') {
+            tg.sendData(JSON.stringify(payload));
+        } else {
+            if (tg && tg.showAlert) {
+                tg.showAlert('ОШИБКА: sendData недоступен. Откройте приложение заново.');
+            }
+        }
+
+        // --- Локальное сохранение ---
+        const newOrder = {
+            id: orderId,
+            date: new Date().toLocaleString('ru-RU', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            }),
+            items: [...cart],
+            total: checkoutData.total,
+            delivery: checkoutData.delivery,
+            address: checkoutData.address,
+            payment: checkoutData.payment,
+            status: 'В обработке'
+        };
+
+        setOrders(prev => [newOrder, ...prev]);
+        setLastOrder(newOrder);
+        setCart([]);
+        setTab('success');
+
+        if (tg) tg.HapticFeedback.notificationOccurred('success');
+
+    } catch (e) {
+        if (tg && tg.showAlert) {
+            tg.showAlert('Ошибка: ' + e.message);
+        }
+        showToast("Ошибка при отправке заказа");
+    } finally {
+        if (tg) tg.MainButton.hideProgress();
+    }
+};
                     }
 
                     if (tg && tg.sendData) {
