@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Smoky Mountain | Shop App</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Manrope', 'sans-serif'] },
+                    colors: {
+                        appBg: '#0b0c10',
+                        surface: '#171821',
+                        surfaceHover: '#1f202d',
+                        primary: '#ff3b5c',
+                        accent: '#f59e0b',
+                        tgBlue: '#2AABEE',
+                    },
+                    animation: {
+                        'bounce-short': 'bounceShort 0.4s ease-in-out',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'accordion-down': 'accordionDown 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        bounceShort: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-25%)' } },
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        popIn: { '0%': { opacity: '0', transform: 'scale(0.5)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+                        accordionDown: { '0%': { opacity: '0', height: '0' }, '100%': { opacity: '1', height: 'auto' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050507; color: white; -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior-y: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-panel { background: rgba(23, 24, 33, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .page-transition { animation: pageEnter 0.3s ease-out forwards; }
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input::placeholder { color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const tg = window.Telegram?.WebApp;
+
+        // --- ИКОНКИ ---
+        const Icons = {
+            Home: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+            Grid: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>,
+            Cart: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
+            Heart: ({c, fill}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill={fill || "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
+            User: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            Plus: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            Minus: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>,
+            Trash: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
+            Search: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            ChevronRight: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
+            ChevronDown: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            X: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Flame: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+            Sparkles: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
+            Copy: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
+            Users: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+            Gift: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>,
+            Star: ({c, fill}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill={fill || "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+            History: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>,
+            Headphones: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>,
+            Check: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+            MapPin: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            Store: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>,
+            CreditCard: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>,
+            Refresh: ({c}) => <svg className={c} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+        };
+
+        // --- ДАННЫЕ ---
+        const PRODUCTS = [
+            { id: 1, title: 'BJORN ТЕМНЫЙ ХОР', category: 'Жидкости', price: 850, tag: 'ТОП #1', desc: 'Насыщенный вкус темных ягод с ледяным оттенком.', img: 'https://images.unsplash.com/photo-1594980596870-1f7b6d8e2f1d?q=80&w=600&auto=format&fit=crop' },
+            { id: 2, title: 'РИК И МОРТИ КИСЛЫЕ', category: 'Жидкости', price: 750, tag: 'ХИТ', desc: 'Взрывная кислинка зеленого яблока.', img: 'https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=600&auto=format&fit=crop' },
+            { id: 3, title: 'HQD ULTRA 2.0', category: 'Одноразки', price: 1200, tag: 'NEW', desc: 'Компактная POD-система с ярким вкусом.', img: 'https://images.unsplash.com/photo-1567394345-2e9c8fb85cb1?q=80&w=600&auto=format&fit=crop' },
+            { id: 4, title: 'ELF BAR BC5000', category: 'Одноразки', price: 1500, tag: 'ТОП', desc: 'До 5000 затяжек. Премиальное качество.', img: 'https://images.unsplash.com/photo-1584731168-41c9d0b0fb2e?q=80&w=600&auto=format&fit=crop' },
+        ];
+
+        // --- БАЗОВЫЕ КОМПОНЕНТЫ ---
+        const Toast = ({ message, onClose }) => {
+            useEffect(() => { const t = setTimeout(onClose, 2000); return () => clearTimeout(t); }, [onClose]);
+            return (
+                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[200] animate-fade-in w-max">
+                    <div className="bg-surface text-white px-5 py-3 rounded-2xl shadow-[0_10px_40px_rgba(255,59,92,0.2)] border border-primary/20 font-bold text-sm flex items-center gap-2">
+                        <Icons.Sparkles c="w-4 h-4 text-primary" /> {message}
+                    </div>
+                </div>
+            );
+        };
+
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+                    <div className="bg-surface w-full max-w-md md:max-w-lg rounded-t-[2rem] md:rounded-[2rem] p-6 pb-safe shadow-2xl animate-slide-up border-t md:border border-white/10 max-h-[90vh] md:max-h-[85vh] overflow-y-auto hide-scrollbar" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4 sticky top-0 bg-surface z-10 pb-2">
+                            <h2 className="text-xl font-extrabold">{title}</h2>
+                            <button onClick={onClose} className="p-2 bg-surfaceHover rounded-full hover:bg-white/10 active:scale-90 transition"><Icons.X c="w-5 h-5" /></button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            );
+        };
+
+        const ProductCard = ({ product, isFav, onFav, onClick, onQuickAdd }) => (
+            <div className="bg-surface rounded-3xl p-2.5 border border-white/5 relative flex flex-col cursor-pointer transition-transform md:hover:scale-[1.02] md:hover:border-white/20 active:scale-[0.97] shadow-sm" onClick={() => onClick(product)}>
+                <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-gray-800 mb-3">
+                    <img src={product.img} alt={product.title} className="w-full h-full object-cover" loading="lazy" />
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        <span className="bg-primary text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">{product.tag}</span>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); onFav(product.id); }} className="absolute top-2 right-2 p-2 bg-black/40 backdrop-blur-md rounded-full hover:bg-black/60 active:scale-90 transition">
+                        <Icons.Heart c={`w-4 h-4 transition-colors ${isFav ? 'text-primary fill-primary' : 'text-white'}`}/>
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); onQuickAdd(product); }} className="absolute bottom-2 right-2 w-9 h-9 bg-white text-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 active:scale-90 transition">
+                        <Icons.Plus c="w-5 h-5" />
+                    </button>
+                </div>
+                <div className="px-1 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{product.category}</div>
+                        <h3 className="text-sm font-extrabold text-white leading-tight line-clamp-2">{product.title}</h3>
+                    </div>
+                    <div className="mt-2 text-lg font-black text-white">{product.price} ₽</div>
+                </div>
+            </div>
+        );
+
+        // --- ЭКРАНЫ ---
+        const HomeScreen = ({ setTab, openModal, favorites, toggleFav, quickAdd }) => (
+            <div className="pb-28 pt-2 page-transition space-y-6 max-w-6xl mx-auto">
+                <div className="mx-4 rounded-[2rem] overflow-hidden relative h-52 md:h-72 bg-surface border border-white/5 flex flex-col justify-end p-5 shadow-lg group cursor-pointer" onClick={() => setTab('catalog')}>
+                    <img src="https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=1200&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50 md:group-hover:scale-105 transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-appBg via-appBg/50 to-transparent"></div>
+                    <div className="relative z-10">
+                        <span className="bg-primary text-white text-[10px] md:text-sm font-black px-3 py-1 rounded-full uppercase mb-2 inline-block shadow-lg">Скидка 20%</span>
+                        <h2 className="text-2xl md:text-4xl font-black leading-tight mb-1">Промокод<br/>MOUNTAIN</h2>
+                    </div>
+                </div>
+                <div>
+                    <div className="px-4 flex justify-between items-center mb-3">
+                        <h3 className="text-xl md:text-2xl font-extrabold">Хиты продаж</h3>
+                        <button onClick={() => setTab('catalog')} className="text-sm font-bold text-primary md:hover:opacity-80 active:scale-95 transition">Все <Icons.ChevronRight c="w-4 h-4 inline"/></button>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-2 md:grid md:grid-cols-3 md:overflow-visible">
+                        {PRODUCTS.slice(0, 3).map(p => (
+                            <div key={p.id} className="min-w-[150px] w-[150px] md:w-auto md:min-w-0">
+                                <ProductCard product={p} isFav={favorites.includes(p.id)} onFav={toggleFav} onClick={(p) => openModal('product', p)} onQuickAdd={quickAdd} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+
+        const CatalogScreen = ({ openModal, favorites, toggleFav, quickAdd }) => {
+            const [cat, setCat] = useState('Все');
+            const cats = ['Все', 'Жидкости', 'Одноразки'];
+            const filtered = cat === 'Все' ? PRODUCTS : PRODUCTS.filter(p => p.category === cat);
+
+            return (
+                <div className="pb-28 pt-4 page-transition max-w-6xl mx-auto">
+                    <div className="flex gap-2 px-4 overflow-x-auto hide-scrollbar mb-4">
+                        {cats.map(c => (
+                            <button key={c} onClick={() => setCat(c)} className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${cat === c ? 'bg-white text-black shadow-lg' : 'bg-surface text-gray-400 border border-white/5 md:hover:bg-surfaceHover'}`}>{c}</button>
+                        ))}
+                    </div>
+                    <div className="px-4 mb-5 relative">
+                        <Icons.Search c="w-5 h-5 absolute left-4 top-3.5 text-gray-500" />
+                        <input type="text" placeholder="Поиск..." className="w-full bg-surface border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium text-white focus:outline-none focus:border-primary/50 transition-all" />
+                    </div>
+                    {/* Адаптивная сетка: 2 колонки на телефоне, 3 на планшете, 4 на ПК */}
+                    <div className="px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+                        {filtered.map(p => (
+                            <ProductCard key={p.id} product={p} isFav={favorites.includes(p.id)} onFav={toggleFav} onClick={(p) => openModal('product', p)} onQuickAdd={quickAdd} />
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const CartScreen = ({ cart, updateQty, removeItem, goToCheckout }) => {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            if (cart.length === 0) return (
+                <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center page-transition">
+                    <div className="w-24 h-24 bg-surface rounded-full flex items-center justify-center mb-6"><Icons.Cart c="w-10 h-10 text-gray-500" /></div>
+                    <h2 className="text-2xl font-black mb-2">Корзина пуста</h2>
+                </div>
+            );
+            return (
+                <div className="pb-32 pt-4 px-4 page-transition max-w-3xl mx-auto">
+                    <h2 className="text-2xl font-black mb-5">Корзина</h2>
+                    <div className="space-y-3">
+                        {cart.map((item) => (
+                            <div key={item.id} className="bg-surface p-3 md:p-4 rounded-3xl flex gap-3 md:gap-5 border border-white/5 relative shadow-sm animate-fade-in">
+                                <img src={item.img} className="w-20 h-24 md:w-24 md:h-28 rounded-2xl object-cover" />
+                                <div className="flex flex-col justify-between flex-1 py-1">
+                                    <div>
+                                        <h4 className="font-bold text-sm md:text-lg leading-tight line-clamp-2">{item.title}</h4>
+                                        <p className="text-primary font-black mt-1 md:text-lg">{item.price} ₽</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 md:w-10 md:h-10 bg-surfaceHover rounded-full flex items-center justify-center active:scale-90 transition hover:bg-white/10"><Icons.Minus c="w-4 h-4"/></button>
+                                        <span className="font-bold text-sm md:text-base w-4 text-center">{item.qty}</span>
+                                        <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 md:w-10 md:h-10 bg-surfaceHover rounded-full flex items-center justify-center active:scale-90 transition hover:bg-white/10"><Icons.Plus c="w-4 h-4"/></button>
+                                    </div>
+                                </div>
+                                <button onClick={() => removeItem(item.id)} className="absolute top-3 right-3 p-1.5 text-gray-500 hover:text-primary transition active:scale-90"><Icons.Trash c="w-4 h-4"/></button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="fixed bottom-[80px] left-0 right-0 p-4 bg-appBg/95 backdrop-blur-xl border-t border-white/5 max-w-md md:max-w-3xl mx-auto md:rounded-t-2xl">
+                        <div className="flex justify-between items-center mb-3 px-2">
+                            <span className="text-gray-400 font-medium">Итого:</span>
+                            <span className="text-2xl font-black">{total} ₽</span>
+                        </div>
+                        <button onClick={goToCheckout} className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-[0_0_20px_rgba(255,59,92,0.4)] hover:bg-primaryHover active:scale-[0.98] transition-all">Перейти к оформлению</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const CheckoutScreen = ({ cart, tgUser, onBack, onSubmit }) => {
+            const [name, setName] = useState(tgUser?.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : '');
+            const [phone, setPhone] = useState('');
+            const [delivery, setDelivery] = useState('pickup');
+            const [address, setAddress] = useState('');
+            const [payment, setPayment] = useState('cash');
+            
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const deliveryPrice = delivery === 'courier' ? 300 : 0;
+            const total = subtotal + deliveryPrice;
+
+            const isFormValid = name.trim().length > 1 && phone.trim().length > 5 && (delivery === 'pickup' || address.trim().length > 5);
+
+            const handlePhoneChange = (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 0) {
+                    if (val[0] === '8') val = '7' + val.slice(1);
+                    let formatted = '+7 ';
+                    if (val.length > 1) formatted += `(${val.slice(1, 4)}`;
+                    if (val.length > 4) formatted += `) ${val.slice(4, 7)}`;
+                    if (val.length > 7) formatted += `-${val.slice(7, 9)}`;
+                    if (val.length > 9) formatted += `-${val.slice(9, 11)}`;
+                    setPhone(formatted);
+                } else setPhone('');
+            };
+
+            return (
+                <div className="pb-28 pt-4 px-4 page-transition max-w-2xl mx-auto w-full">
+                    <div className="flex items-center gap-3 mb-6">
+                        <button onClick={onBack} className="p-2 bg-surface rounded-full hover:bg-white/10 active:scale-90 transition"><Icons.ChevronRight c="w-5 h-5 rotate-180" /></button>
+                        <h2 className="text-2xl font-black">Оформление</h2>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="space-y-3 bg-surface md:p-6 md:rounded-3xl md:border md:border-white/5">
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider ml-1">Получатель</h3>
+                            <input type="text" placeholder="Ваше имя" value={name} onChange={e => setName(e.target.value)} className="w-full bg-appBg md:bg-surfaceHover border border-white/5 rounded-2xl p-4 text-sm font-medium text-white focus:outline-none focus:border-primary transition-colors" />
+                            <input type="tel" placeholder="+7 (___) ___-__-__" value={phone} onChange={handlePhoneChange} className="w-full bg-appBg md:bg-surfaceHover border border-white/5 rounded-2xl p-4 text-sm font-medium text-white focus:outline-none focus:border-primary transition-colors" />
+                        </div>
+
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider ml-1">Способ получения</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => setDelivery('pickup')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${delivery === 'pickup' ? 'bg-primary/10 border-primary text-white' : 'bg-surface border-white/5 text-gray-400 hover:border-gray-500'}`}>
+                                    <Icons.Store c="w-6 h-6" /> <span className="text-xs font-bold">Самовывоз</span>
+                                </button>
+                                <button onClick={() => setDelivery('courier')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${delivery === 'courier' ? 'bg-primary/10 border-primary text-white' : 'bg-surface border-white/5 text-gray-400 hover:border-gray-500'}`}>
+                                    <Icons.MapPin c="w-6 h-6" /> <span className="text-xs font-bold">Курьер</span>
+                                </button>
+                            </div>
+                            {delivery === 'courier' && (
+                                <input type="text" placeholder="Адрес доставки (улица, дом, кв)" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-surface border border-white/5 rounded-2xl p-4 text-sm font-medium text-white focus:outline-none focus:border-primary transition-colors animate-fade-in" />
+                            )}
+                        </div>
+
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider ml-1">Оплата</h3>
+                            <div className="bg-surface rounded-2xl border border-white/5 overflow-hidden">
+                                <button onClick={() => setPayment('cash')} className="w-full flex items-center justify-between p-4 border-b border-white/5 hover:bg-white/5 transition">
+                                    <div className="flex items-center gap-3"><Icons.CreditCard c="w-5 h-5 text-gray-400"/> <span className="text-sm font-medium">При получении</span></div>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${payment === 'cash' ? 'border-primary' : 'border-gray-600'}`}>{payment === 'cash' && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}</div>
+                                </button>
+                                <button onClick={() => setPayment('stars')} className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition">
+                                    <div className="flex items-center gap-3"><Icons.Star c="w-5 h-5 text-tgBlue"/> <span className="text-sm font-medium">Telegram Stars</span></div>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${payment === 'stars' ? 'border-tgBlue' : 'border-gray-600'}`}>{payment === 'stars' && <div className="w-2.5 h-2.5 bg-tgBlue rounded-full"></div>}</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="fixed bottom-[80px] left-0 right-0 p-4 bg-appBg/95 backdrop-blur-xl border-t border-white/5 max-w-md md:max-w-2xl mx-auto md:rounded-t-2xl">
+                        <div className="space-y-1 mb-3 px-2">
+                            <div className="flex justify-between text-xs text-gray-400"><span>Товары ({cart.reduce((s,i)=>s+i.qty,0)}):</span><span>{subtotal} ₽</span></div>
+                            {delivery === 'courier' && <div className="flex justify-between text-xs text-gray-400"><span>Доставка:</span><span>{deliveryPrice} ₽</span></div>}
+                            <div className="flex justify-between text-lg font-black pt-1"><span>Итого:</span><span>{total} ₽</span></div>
+                        </div>
+                        <button 
+                            onClick={() => onSubmit({ name, phone, delivery, address, payment, total })} 
+                            disabled={!isFormValid}
+                            className={`w-full py-4 rounded-2xl font-black text-lg transition-all ${isFormValid ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,59,92,0.4)] hover:bg-primaryHover active:scale-[0.98]' : 'bg-surfaceHover text-gray-500 cursor-not-allowed'}`}
+                        >
+                            Подтвердить заказ
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const SuccessScreen = ({ orderData, onGoHome }) => (
+            <div className="flex flex-col items-center justify-center h-[75vh] px-6 text-center page-transition">
+                <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6 animate-pop-in">
+                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.6)]">
+                        <Icons.Check c="w-8 h-8 text-white" />
+                    </div>
+                </div>
+                
+                <h2 className="text-3xl font-black mb-2">Заказ принят!</h2>
+                <p className="text-gray-400 text-sm mb-6">Мы свяжемся с вами для подтверждения.</p>
+                
+                <div className="bg-surface rounded-2xl p-4 w-full max-w-[280px] mb-8 border border-white/5">
+                    <div className="text-xs text-gray-400 mb-1">Номер вашего заказа:</div>
+                    <div className="text-2xl font-black tracking-widest text-primary">#{orderData?.id}</div>
+                    <div className="text-xs text-gray-400 mt-2">Сумма: {orderData?.total} ₽</div>
+                </div>
+
+                <button onClick={onGoHome} className="w-full max-w-[280px] bg-primary py-4 rounded-2xl font-black text-white shadow-glow-primary hover:bg-primaryHover active:scale-[0.98] transition-all">
+                    Вернуться на главную
+                </button>
+            </div>
+        );
+
+        const ProfileScreen = ({ tgUser, showToast, openModal, ordersCount }) => {
+            const [copied, setCopied] = useState(false);
+            const [bonusClaimed, setBonusClaimed] = useState(false);
+            const refLink = `https://t.me/SmokyMountainBot?start=ref_${tgUser?.id || 'guest'}`;
+
+            const copyRef = () => {
+                navigator.clipboard.writeText(refLink).then(() => {
+                    setCopied(true); showToast("Ссылка скопирована!");
+                    if (tg) tg.HapticFeedback.notificationOccurred('success');
+                    setTimeout(() => setCopied(false), 2000);
+                });
+            };
+
+            const claimBonus = () => {
+                if (bonusClaimed) return;
+                setBonusClaimed(true); showToast("Вы получили 50 бонусов!");
+                if (tg) tg.HapticFeedback.notificationOccurred('success');
+            };
+
+            return (
+                <div className="pb-28 pt-4 page-transition space-y-4 max-w-3xl mx-auto">
+                    <div className="mx-4 bg-surface rounded-[2rem] p-5 flex items-center gap-4 border border-white/5 relative overflow-hidden">
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+                        {tgUser?.photo_url ? (
+                            <img src={tgUser.photo_url} className="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-[0_0_15px_rgba(255,59,92,0.4)]" />
+                        ) : (
+                            <div className="w-16 h-16 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-2xl font-black shadow-lg">
+                                {tgUser?.first_name?.[0] || 'U'}
+                            </div>
+                        )}
+                        <div className="relative z-10">
+                            <h2 className="text-xl font-black">{tgUser?.first_name || 'Гость'} {tgUser?.last_name || ''}</h2>
+                            <p className="text-xs text-gray-400 font-medium bg-black/40 px-2 py-1 rounded-md inline-block mt-1 border border-white/5">@{tgUser?.username || 'username'}</p>
+                        </div>
+                    </div>
+
+                    <div className="mx-4 grid grid-cols-2 gap-3">
+                        <div className="bg-gradient-to-br from-surface to-[#2a1f12] p-4 rounded-3xl border border-orange-500/20 relative overflow-hidden">
+                            <div className="text-[10px] text-orange-300 font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Icons.Star c="w-3 h-3" fill="currentColor"/> Бонусы</div>
+                            <div className="text-2xl font-black text-white">1 250</div>
+                        </div>
+                        <div className="bg-gradient-to-br from-surface to-[#12202a] p-4 rounded-3xl border border-tgBlue/20 relative overflow-hidden">
+                            <div className="text-[10px] text-tgBlue font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><Icons.Sparkles c="w-3 h-3"/> TG Stars</div>
+                            <div className="text-2xl font-black text-white">15</div>
+                        </div>
+                    </div>
+
+                    <div className="mx-4 bg-surface rounded-[2rem] p-5 border border-white/5 shadow-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center"><Icons.Users c="w-5 h-5 text-primary"/></div>
+                            <div><h3 className="text-sm font-bold">Приглашай друзей</h3><p className="text-[10px] text-gray-400">Получай 500₽ за друга</p></div>
+                        </div>
+                        <div className="flex items-center bg-appBg rounded-xl p-1 border border-white/5 mb-3">
+                            <input type="text" readOnly value={refLink} className="bg-transparent text-xs text-gray-400 px-3 py-2 flex-1 outline-none truncate" />
+                            <button onClick={copyRef} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${copied ? 'bg-green-500 text-white' : 'bg-primary text-white hover:bg-primaryHover active:scale-95'}`}>{copied ? 'Готово' : 'Копировать'}</button>
+                        </div>
+                    </div>
+
+                    <div className="mx-4 bg-gradient-to-r from-surface to-surfaceHover rounded-[2rem] p-4 flex items-center justify-between border border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-accent/20 rounded-2xl flex items-center justify-center"><Icons.Gift c="w-6 h-6 text-accent"/></div>
+                            <div><h3 className="text-sm font-bold">Ежедневный вход</h3><p className="text-[10px] text-gray-400">Заберите 50 бонусов</p></div>
+                        </div>
+                        <button onClick={claimBonus} disabled={bonusClaimed} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${bonusClaimed ? 'bg-gray-800 text-gray-500' : 'bg-accent text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] hover:bg-yellow-500 active:scale-95'}`}>{bonusClaimed ? 'Получено' : 'Забрать'}</button>
+                    </div>
+
+                    <div className="mx-4 bg-surface rounded-[2rem] border border-white/5 overflow-hidden">
+                        <button onClick={() => openModal('history')} className="w-full flex items-center justify-between p-4 border-b border-white/5 hover:bg-surfaceHover active:bg-surfaceHover transition">
+                            <div className="flex items-center gap-3">
+                                <Icons.History c="w-5 h-5 text-gray-400"/> 
+                                <span className="text-sm font-semibold">История заказов</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {ordersCount > 0 && <span className="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">{ordersCount}</span>}
+                                <Icons.ChevronRight c="w-4 h-4 text-gray-500"/>
+                            </div>
+                        </button>
+                        <button onClick={() => openModal('support')} className="w-full flex items-center justify-between p-4 hover:bg-surfaceHover active:bg-surfaceHover transition">
+                            <div className="flex items-center gap-3"><Icons.Headphones c="w-5 h-5 text-gray-400"/> <span className="text-sm font-semibold">Поддержка</span></div>
+                            <Icons.ChevronRight c="w-4 h-4 text-gray-500"/>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const OrderHistory = ({ orders, onRepeat }) => {
+            const [expandedOrder, setExpandedOrder] = useState(null);
+
+            if (orders.length === 0) {
+                return (
+                    <div className="text-center py-16 text-gray-500">
+                        <div className="w-20 h-20 bg-surfaceHover rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Icons.History c="w-10 h-10 opacity-50" />
+                        </div>
+                        <p className="text-sm font-medium">У вас пока нет заказов.</p>
+                        <p className="text-xs text-gray-600 mt-1">Самое время это исправить!</p>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-3 pb-6">
+                    {orders.map((order) => {
+                        const isExpanded = expandedOrder === order.id;
+                        return (
+                            <div key={order.id} className="bg-appBg rounded-2xl border border-white/5 overflow-hidden">
+                                <div 
+                                    onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 active:bg-white/5 transition"
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-sm font-black text-white">#{order.id}</span>
+                                            <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded">{order.date}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-400">{order.items.reduce((s,i)=>s+i.qty,0)} товара • {order.total} ₽</div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${order.status === 'В обработке' ? 'bg-accent/20 text-accent' : 'bg-green-500/20 text-green-500'}`}>
+                                            {order.status}
+                                        </span>
+                                        <Icons.ChevronDown c={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                    </div>
+                                </div>
+
+                                {isExpanded && (
+                                    <div className="p-4 pt-0 border-t border-white/5 mt-2 animate-accordion-down">
+                                        <div className="space-y-3 my-3">
+                                            {order.items.map((item, idx) => (
+                                                <div key={idx} className="flex items-center gap-3">
+                                                    <img src={item.img} className="w-10 h-10 rounded-lg object-cover" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-xs font-bold text-white truncate">{item.title}</div>
+                                                        <div className="text-[10px] text-gray-500">{item.qty} шт. × {item.price} ₽</div>
+                                                    </div>
+                                                    <div className="text-xs font-bold">{item.price * item.qty} ₽</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        
+                                        <div className="bg-surface rounded-xl p-3 mb-4 space-y-1.5">
+                                            <div className="flex justify-between text-[10px] text-gray-400">
+                                                <span>Способ получения:</span>
+                                                <span className="text-white font-medium">{order.delivery === 'courier' ? 'Курьер' : 'Самовывоз'}</span>
+                                            </div>
+                                            {order.delivery === 'courier' && (
+                                                <div className="flex justify-between text-[10px] text-gray-400">
+                                                    <span>Адрес:</span>
+                                                    <span className="text-white font-medium truncate ml-4 max-w-[180px]">{order.address}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between text-[10px] text-gray-400">
+                                                <span>Оплата:</span>
+                                                <span className="text-white font-medium">{order.payment === 'stars' ? 'Telegram Stars' : 'При получении'}</span>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            onClick={() => onRepeat(order.items)}
+                                            className="w-full bg-surfaceHover hover:bg-white/10 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95"
+                                        >
+                                            <Icons.Refresh c="w-4 h-4" /> Повторить заказ
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // --- ГЛАВНЫЙ APP ---
+        const App = () => {
+            const [tab, setTab] = useState('home');
+            const [modal, setModal] = useState(null);
+            const [toast, setToast] = useState(null);
+            const [tgUser, setTgUser] = useState(null);
+            const [favorites, setFavorites] = useState([]);
+            const [cart, setCart] = useState([]);
+            const [cartBump, setCartBump] = useState(false);
+            const [lastOrder, setLastOrder] = useState(null);
+
+            const [orders, setOrders] = useState(() => {
+                const saved = localStorage.getItem('smoky_orders');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            useEffect(() => {
+                localStorage.setItem('smoky_orders', JSON.stringify(orders));
+            }, [orders]);
+
+            useEffect(() => {
+                if (tg) {
+                    tg.ready(); tg.expand(); tg.setHeaderColor('#0b0c10');
+                    if (tg.initDataUnsafe?.user) setTgUser(tg.initDataUnsafe.user);
+                }
+            }, []);
+
+            const showToast = (msg) => setToast(msg);
+
+            const toggleFav = (id) => {
+                setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
+                if (tg) tg.HapticFeedback.impactOccurred('light');
+            };
+
+            const quickAdd = (product) => {
+                setCart(prev => {
+                    const existing = prev.find(item => item.id === product.id);
+                    if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+                    return [...prev, { ...product, qty: 1 }];
+                });
+                showToast("Товар добавлен");
+                setCartBump(true);
+                setTimeout(() => setCartBump(false), 400);
+                if (tg) tg.HapticFeedback.impactOccurred('medium');
+            };
+
+            const updateQty = (id, delta) => {
+                setCart(prev => prev.map(item => {
+                    if (item.id === id) {
+                        const newQty = item.qty + delta;
+                        return newQty > 0 ? { ...item, qty: newQty } : item;
+                    }
+                    return item;
+                }).filter(item => item.qty > 0));
+            };
+
+            const removeItem = (id) => setCart(prev => prev.filter(item => item.id !== id));
+
+            const repeatOrder = (items) => {
+                setCart(prev => {
+                    let newCart = [...prev];
+                    items.forEach(orderItem => {
+                        const existing = newCart.find(i => i.id === orderItem.id);
+                        if (existing) {
+                            existing.qty += orderItem.qty;
+                        } else {
+                            newCart.push({ ...orderItem });
+                        }
+                    });
+                    return newCart;
+                });
+                setModal(null);
+                setTab('cart');
+                showToast("Товары добавлены в корзину");
+                if (tg) tg.HapticFeedback.notificationOccurred('success');
+            };
+
+            const handleProcessOrder = async (checkoutData) => {
+                if (tg) tg.MainButton.showProgress();
+                
+                try {
+                    const orderId = Math.floor(100000 + Math.random() * 900000);
+                    await new Promise(r => setTimeout(r, 1500));
+                    
+                    const newOrder = {
+                        id: orderId,
+                        date: new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                        items: [...cart],
+                        total: checkoutData.total,
+                        delivery: checkoutData.delivery,
+                        address: checkoutData.address,
+                        payment: checkoutData.payment,
+                        status: 'В обработке'
+                    };
+
+                    setOrders(prev => [newOrder, ...prev]);
+                    setLastOrder(newOrder);
+                    setCart([]);
+                    setTab('success');
+
+                    if (tg) tg.HapticFeedback.notificationOccurred('success');
+
+                } catch (e) {
+                    showToast("Ошибка при отправке заказа");
+                } finally {
+                    if (tg) tg.MainButton.hideProgress();
+                }
+            };
+
+            const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            const isCheckoutMode = tab === 'checkout' || tab === 'success';
+
+            return (
+                /* Обертка для ПК: добавляет красивый фон вокруг приложения */
+                <div className="min-h-screen w-full bg-[#050507] flex items-center justify-center p-0 md:p-6 overflow-hidden">
+                    
+                    {/* Основной контейнер: на ПК расширяется до max-w-6xl */}
+                    <div className="w-full max-w-md md:max-w-6xl h-screen md:h-[90vh] relative shadow-2xl overflow-hidden bg-appBg md:rounded-[3rem] border-0 md:border md:border-white/10 flex flex-col">
+                        {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+
+                        {!isCheckoutMode && (
+                            <div className="flex justify-between items-center p-5 pt-8 md:pt-5 sticky top-0 z-40 bg-appBg/80 backdrop-blur-xl border-b border-white/5">
+                                <h1 className="text-xl font-black tracking-wider flex items-center gap-2"><Icons.Flame c="w-6 h-6 text-primary" /> SMOKY</h1>
+                            </div>
+                        )}
+
+                        <main className={`flex-1 overflow-y-auto hide-scrollbar ${isCheckoutMode ? 'pb-0' : 'pb-24 md:pb-28'}`}>
+                            {tab === 'home' && <HomeScreen setTab={setTab} openModal={(t, d) => setModal({type: t, data: d})} favorites={favorites} toggleFav={toggleFav} quickAdd={quickAdd} />}
+                            {tab === 'catalog' && <CatalogScreen openModal={(t, d) => setModal({type: t, data: d})} favorites={favorites} toggleFav={toggleFav} quickAdd={quickAdd} />}
+                            {tab === 'cart' && <CartScreen cart={cart} updateQty={updateQty} removeItem={removeItem} goToCheckout={() => setTab('checkout')} />}
+                            {tab === 'checkout' && <CheckoutScreen cart={cart} tgUser={tgUser} onBack={() => setTab('cart')} onSubmit={handleProcessOrder} />}
+                            {tab === 'success' && <SuccessScreen orderData={lastOrder} onGoHome={() => setTab('home')} />}
+                            {tab === 'profile' && <ProfileScreen tgUser={tgUser} showToast={showToast} openModal={(t) => setModal({type: t})} ordersCount={orders.length} />}
+                        </main>
+
+                        {!isCheckoutMode && (
+                            <div className="w-full absolute bottom-0 glass-panel pb-safe pt-2 px-4 rounded-t-[2rem] z-50">
+                                <div className="flex justify-between md:justify-center md:gap-16 items-center pb-2 max-w-md mx-auto">
+                                    {[
+                                        { id: 'home', icon: Icons.Home, label: 'Главная' },
+                                        { id: 'catalog', icon: Icons.Grid, label: 'Каталог' },
+                                        { id: 'cart', icon: Icons.Cart, label: 'Корзина', count: cartCount },
+                                        { id: 'profile', icon: Icons.User, label: 'Профиль' }
+                                    ].map(t => {
+                                        const isActive = tab === t.id;
+                                        return (
+                                            <button key={t.id} onClick={() => setTab(t.id)} className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors relative md:hover:text-white ${isActive ? 'text-primary' : 'text-gray-500'}`}>
+                                                <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-primary/10' : ''} ${t.id === 'cart' && cartBump ? 'animate-bounce-short' : ''}`}>
+                                                    <t.icon c="w-6 h-6" />
+                                                </div>
+                                                <span className="text-[10px] font-bold">{t.label}</span>
+                                                {t.count > 0 && <span className="absolute top-0 right-1 bg-primary text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-appBg">{t.count}</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Модалка товара */}
+                        <Modal isOpen={modal?.type === 'product'} onClose={() => setModal(null)} title="О товаре">
+                            {modal?.data && (
+                                <div className="md:flex md:gap-6 md:items-start">
+                                    <div className="relative w-full md:w-1/2 aspect-square rounded-3xl overflow-hidden mb-5 md:mb-0">
+                                        <img src={modal.data.img} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="md:w-1/2 flex flex-col justify-between h-full">
+                                        <div>
+                                            <h3 className="text-2xl font-black leading-tight mb-2">{modal.data.title}</h3>
+                                            <p className="text-gray-400 text-sm mb-6">{modal.data.desc}</p>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center justify-between bg-surfaceHover p-4 rounded-2xl mb-6">
+                                                <span className="text-2xl font-black">{modal.data.price} ₽</span>
+                                            </div>
+                                            <button onClick={() => { quickAdd(modal.data); setModal(null); }} className="w-full bg-primary py-4 rounded-2xl font-black text-lg shadow-lg md:hover:bg-primaryHover active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                                                <Icons.Cart c="w-6 h-6" /> В корзину
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </Modal>
+
+                        <Modal isOpen={modal?.type === 'history'} onClose={() => setModal(null)} title="История заказов">
+                            <OrderHistory orders={orders} onRepeat={repeatOrder} />
+                        </Modal>
+
+                        <Modal isOpen={modal?.type === 'support'} onClose={() => setModal(null)} title="Поддержка">
+                            <div className="space-y-3">
+                                <p className="text-sm text-gray-400 mb-4">Возникли вопросы? Мы на связи 24/7.</p>
+                                <a href="https://t.me/telegram" className="w-full bg-tgBlue text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 md:hover:bg-blue-500 active:scale-95 transition">
+                                    <Icons.Headphones c="w-5 h-5" /> Написать в Telegram
+                                </a>
+                            </div>
+                        </Modal>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

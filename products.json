@@ -1,0 +1,22 @@
+[
+  {
+    "id": 2,
+    "title": "g",
+    "desc": "g",
+    "price": 500,
+    "category": "жидкость",
+    "tag": "NEW",
+    "img": "assets/prod_138_AgACAg.jpg",
+    "quantity": 5
+  },
+  {
+    "id": 1,
+    "title": "жижа",
+    "desc": "крепоксть улет",
+    "price": 500,
+    "category": "жидкость",
+    "tag": "ХИТ",
+    "img": "assets/prod_117_AgACAg.jpg",
+    "quantity": 5
+  }
+]
