@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": 4,
+    "title": "g",
+    "desc": "g",
+    "price": 500,
+    "category": "жидкость",
+    "tag": "NEW",
+    "img": "assets/prod_191_AgACAg.jpg",
+    "quantity": 5
+  }
+]
