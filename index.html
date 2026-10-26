@@ -544,6 +544,9 @@
             const removeItem = (id) => setCart(prev => prev.filter(item => item.id !== id));
 
             const handleProcessOrder = (checkoutData) => {
+                // 1. ПОКАЗЫВАЕМ ОКНО, ЧТО КНОПКА НАЖАТА
+                alert("1. Кнопка нажата! Собираю данные...");
+
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 const payload = {
                     orderId: orderId,
@@ -555,6 +558,22 @@
                     payment: checkoutData.payment,
                     bonusUsed: checkoutData.bonusUsed || 0
                 };
+
+                // 2. ПРОВЕРЯЕМ ОТПРАВКУ
+                if (tg && typeof tg.sendData === 'function') {
+                    tg.sendData(JSON.stringify(payload));
+                    alert("2. Данные отправлены в Telegram!");
+                } else {
+                    alert("ОШИБКА: tg.sendData недоступен. Вы открыли приложение не через кнопку в боте!");
+                }
+
+                const newOrder = { id: orderId, date: new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), items: [...cart], total: checkoutData.total, status: 'В обработке' };
+                setOrders(prev => [newOrder, ...prev]);
+                setLastOrder(newOrder);
+                setBonuses(prev => prev - checkoutData.bonusUsed + Math.floor(checkoutData.total * 0.05));
+                setCart([]);
+                setTab('success');
+            };
 
                 // ОТПРАВЛЯЕМ В БОТА. НИКАКИХ АЛЕРТОВ.
                 if (tg && typeof tg.sendData === 'function') {
