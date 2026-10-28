@@ -150,12 +150,17 @@
                     promoCode: appliedPromo || "Без промокода"
                 };
 
-                // 1. Нативный метод
+                // ПРОВЕРКА: Если мы в Телеграме — шлем боту (с кнопками и базой)
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
+                    setCart([]);
+                    setCheckoutStep(false);
+                    setTab('success');
+                    setTimeout(() => { if(tg) tg.close(); }, 500);
+                    return; // Выходим, fetch не нужен
                 }
 
-                // 2. Страховка через API (ЖДЕМ ОТВЕТА)
+                // ЕСЛИ В БРАУЗЕРЕ — шлем через запасной API
                 const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
                 const ADMIN_ID = "8488865562";
                 const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
@@ -164,7 +169,6 @@
                 text += `👤 <b>Имя:</b> ${name}\n📞 <b>Телефон:</b> ${phone}\n`;
                 text += `🚚 <b>Способ:</b> ${delivery}\n`;
                 if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
-                if (appliedPromo) text += `🎟 <b>Промокод:</b> ${appliedPromo} (-${discountAmount} ₽)\n`;
                 text += `\n📦 <b>Товары:</b>\n`;
                 cart.forEach(item => text += `  • ${item.title} × ${item.qty} = ${item.price * item.qty} ₽\n`);
                 text += `\n💰 <b>Итого: ${cartTotal} ₽</b>`;
@@ -175,15 +179,11 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
                     });
-                    console.log("✅ API отправлен успешно");
-                } catch (err) {
-                    console.error("❌ Ошибка API:", err);
-                }
+                } catch (err) {}
 
                 setCart([]);
                 setCheckoutStep(false);
                 setTab('success');
-                if(tg) tg.close(); // Закрываем ТОЛЬКО после отправки
             };
 
             const renderContent = () => {
