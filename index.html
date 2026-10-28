@@ -150,12 +150,12 @@
                     promoCode: appliedPromo || "Без промокода"
                 };
 
-                // 1. Отправка нативным способом (Телеграм)
+                // === СПОСОБ 1: Нативный (для бота, чтобы сохранить в БД) ===
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
                 }
 
-                // 2. СТРАХОВКА: отправка напрямую через API (через твой Worker)
+                // === СПОСОБ 2: Прямой (для гарантированного уведомления) ===
                 const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
                 const ADMIN_ID = "8488865562";
                 const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
@@ -173,9 +173,11 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
-                }).catch(err => console.log("API Error:", err));
+                }).then(res => {
+                    if(res.ok) console.log("✅ Заказ отправлен через API");
+                }).catch(err => console.error("❌ Ошибка API:", err));
 
-                // Очищаем корзину и закрываем
+                // Очищаем и закрываем
                 setCart([]);
                 setCheckoutStep(false);
                 setTab('success');
