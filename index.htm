@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Smoky Mountain | Ultimate App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root { --bg: #0b0c10; --surface: #171821; --surface-hover: #1f202d; --text-main: #ffffff; --text-muted: #9ca3af; --border: rgba(255,255,255,0.05); --primary: #ff3b5c; }
+        .theme-light { --bg: #f3f4f6; --surface: #ffffff; --surface-hover: #f9fafb; --text-main: #111827; --text-muted: #6b7280; --border: rgba(0,0,0,0.08); }
+        .theme-space { --bg: #0a001a; --surface: #150a30; --surface-hover: #1f103f; --text-main: #f0e6ff; --text-muted: #9d8bc4; --border: rgba(138, 43, 226, 0.3); --primary: #a855f7; }
+        .theme-sea { --bg: #051923; --surface: #003554; --surface-hover: #004c75; --text-main: #e0f2fe; --text-muted: #7dd3fc; --border: rgba(56, 189, 248, 0.3); --primary: #06b6d4; }
+
+        body { background-color: var(--bg); color: var(--text-main); -webkit-tap-highlight-color: transparent; overflow: hidden; font-family: 'Manrope', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-panel { background: var(--surface); opacity: 0.95; backdrop-filter: blur(20px); border-top: 1px solid var(--border); }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Manrope', 'sans-serif'] }, colors: { appBg: 'var(--bg)', surface: 'var(--surface)', surfaceHover: 'var(--surface-hover)', primary: 'var(--primary)', textMain: 'var(--text-main)', textMuted: 'var(--text-muted)', borderCol: 'var(--border)', accent: '#f59e0b', tgBlue: '#2AABEE' } } }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const tg = window.Telegram?.WebApp;
+
+        const Icons = {
+            Home: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>,
+            Cart: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
+            User: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            Plus: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            Minus: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14"/></svg>,
+            Check: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
+            Flame: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+            Palette: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>,
+            Store: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>,
+            MapPin: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            Star: ({c, fill}) => <svg className={c} width="24" height="24" fill={fill || "none"} stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+            Ticket: ({c}) => <svg className={c} width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+        };
+
+        const FALLBACK = [{ id: 1, title: 'Тестовый товар', category: 'Жидкости', price: 500, tag: 'NEW', desc: 'Описание', img: 'https://images.unsplash.com/photo-1558397453-94826230dcb6?q=80&w=600' }];
+
+        const App = () => {
+            const [tab, setTab] = useState('home');
+            const [cart, setCart] = useState([]);
+            const [PRODUCTS, setProducts] = useState(FALLBACK);
+            const [PROMOS, setPromos] = useState([]);
+            const [checkoutStep, setCheckoutStep] = useState(false);
+            
+            const [name, setName] = useState('');
+            const [phone, setPhone] = useState('');
+            const [delivery, setDelivery] = useState('Самовывоз');
+            const [address, setAddress] = useState('');
+            
+            const [promoInput, setPromoInput] = useState('');
+            const [appliedDiscount, setAppliedDiscount] = useState(0);
+            const [appliedPromo, setAppliedPromo] = useState('');
+            const [promoError, setPromoError] = useState('');
+
+            const [theme, setTheme] = useState('dark');
+
+            useEffect(() => {
+                try {
+                    const saved = localStorage.getItem('smoky_theme');
+                    if (saved) setTheme(saved);
+                } catch {}
+                
+                fetch('./products.json').then(r => r.json()).then(data => { if (Array.isArray(data) && data.length) setProducts(data); }).catch(e => console.log(e));
+                fetch('./promos.json').then(r => r.json()).then(data => { if (Array.isArray(data)) setPromos(data); }).catch(e => console.log(e));
+                
+                if (tg) { tg.ready(); tg.expand(); }
+            }, []);
+
+            useEffect(() => {
+                try { document.body.className = theme === 'dark' ? '' : `theme-${theme}`; localStorage.setItem('smoky_theme', theme); } catch {}
+            }, [theme]);
+
+            const handleNameChange = (e) => {
+                const val = e.target.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s]/g, '');
+                setName(val);
+            };
+
+            const handlePhoneChange = (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 0) {
+                    if (val[0] === '8') val = '7' + val.slice(1);
+                    if (val[0] !== '7') val = '7' + val;
+                    let formatted = '+7 ';
+                    if (val.length > 1) formatted += `(${val.slice(1, 4)}`;
+                    if (val.length > 4) formatted += `) ${val.slice(4, 7)}`;
+                    if (val.length > 7) formatted += `-${val.slice(7, 9)}`;
+                    if (val.length > 9) formatted += `-${val.slice(9, 11)}`;
+                    setPhone(formatted);
+                } else {
+                    setPhone('');
+                }
+            };
+
+            const applyPromo = () => {
+                const code = promoInput.trim().toUpperCase();
+                const found = PROMOS.find(p => p.code === code);
+                if (found) {
+                    setAppliedDiscount(found.discount);
+                    setAppliedPromo(code);
+                    setPromoError('');
+                } else {
+                    setPromoError('Промокод не найден');
+                    setAppliedDiscount(0);
+                    setAppliedPromo('');
+                }
+            };
+
+            const quickAdd = (product) => {
+                setCart(prev => {
+                    const existing = prev.find(item => item.id === product.id);
+                    if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+                    return [...prev, { ...product, qty: 1 }];
+                });
+                if (tg) tg.HapticFeedback.impactOccurred('medium');
+            };
+
+            const updateQty = (id, delta) => setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(0, item.qty + delta) } : item).filter(item => item.qty > 0));
+            
+            const cartSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const discountAmount = Math.floor(cartSubtotal * (appliedDiscount / 100));
+            const cartTotal = cartSubtotal - discountAmount;
+
+            const handleSendOrder = async () => {
+                const orderId = Math.floor(100000 + Math.random() * 900000);
+                const payload = {
+                    orderId: orderId,
+                    items: cart.map(item => ({ id: item.id, title: item.title, price: item.price, qty: item.qty })),
+                    total: cartTotal,
+                    phone: phone,
+                    delivery: delivery,
+                    address: delivery === 'Встреча' ? address : '—',
+                    payment: "При получении",
+                    promoCode: appliedPromo || "Без промокода"
+                };
+
+                // 1. Отправка боту (для сохранения в БД)
+                if (tg && typeof tg.sendData === 'function') {
+                    tg.sendData(JSON.stringify(payload));
+                }
+
+                // 2. ЖЕЛЕЗОБЕТОННАЯ ОТПРАВКА ЧЕРЕЗ CLOUDFLARE WORKER
+                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
+                const ADMIN_ID = "8488865562";
+                const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
+                
+                let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
+                text += `👤 <b>Имя:</b> ${name}\n📞 <b>Телефон:</b> ${phone}\n`;
+                text += `🚚 <b>Способ:</b> ${delivery}\n`;
+                if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
+                if (appliedPromo) text += `🎟 <b>Промокод:</b> ${appliedPromo} (-${discountAmount} ₽)\n`;
+                text += `\n📦 <b>Товары:</b>\n`;
+                cart.forEach(item => text += `  • ${item.title} × ${item.qty} = ${item.price * item.qty} ₽\n`);
+                text += `\n💰 <b>Итого: ${cartTotal} ₽</b>`;
+
+                try {
+                    await fetch(`${WORKER_URL}/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
+                    });
+                } catch (err) {
+                    console.log("Worker Error:", err);
+                }
+
+                setCart([]);
+                setCheckoutStep(false);
+                setTab('success');
+                setTimeout(() => { if(tg) tg.close(); }, 500);
+            };
+
+            const renderContent = () => {
+                if (tab === 'success') {
+                    return (
+                        <div className="flex flex-col items-center justify-center h-[75vh] px-6 text-center">
+                            <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
+                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center"><Icons.Check c="w-8 h-8 text-white" /></div>
+                            </div>
+                            <h2 className="text-3xl font-black mb-2 text-textMain">Заказ отправлен!</h2>
+                            <p className="text-textMuted text-sm mb-6">Ожидайте подтверждения от магазина.</p>
+                            <button onClick={() => setTab('home')} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">На главную</button>
+                        </div>
+                    );
+                }
+
+                if (checkoutStep) {
+                    return (
+                        <div className="p-4 pb-24">
+                            <button onClick={() => setCheckoutStep(false)} className="text-textMuted mb-4 text-sm font-bold flex items-center gap-1">← В корзину</button>
+                            <h2 className="text-2xl font-black text-textMain mb-6">Оформление</h2>
+                            
+                            <div className="space-y-4 bg-surface p-5 rounded-2xl border border-borderCol">
+                                <div>
+                                    <label className="text-xs text-textMuted font-bold mb-1 block">Ваше имя</label>
+                                    <input type="text" value={name} onChange={handleNameChange} className="w-full bg-appBg border border-borderCol rounded-xl p-3 text-textMain outline-none focus:border-primary" placeholder="Иван" />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-textMuted font-bold mb-1 block">Телефон</label>
+                                    <input type="tel" value={phone} onChange={handlePhoneChange} className="w-full bg-appBg border border-borderCol rounded-xl p-3 text-textMain outline-none focus:border-primary" placeholder="+7 (999) 000-00-00" />
+                                </div>
+                                
+                                <div>
+                                    <label className="text-xs text-textMuted font-bold mb-2 block">Способ получения</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button onClick={() => setDelivery('Самовывоз')} className={`p-3 rounded-xl border flex flex-col items-center gap-1 ${delivery === 'Самовывоз' ? 'bg-primary/10 border-primary text-primary' : 'bg-transparent border-borderCol text-textMuted'}`}>
+                                            <Icons.Store c="w-5 h-5" /> <span className="text-xs font-bold">Самовывоз</span>
+                                        </button>
+                                        <button onClick={() => setDelivery('Встреча')} className={`p-3 rounded-xl border flex flex-col items-center gap-1 ${delivery === 'Встреча' ? 'bg-primary/10 border-primary text-primary' : 'bg-transparent border-borderCol text-textMuted'}`}>
+                                            <Icons.MapPin c="w-5 h-5" /> <span className="text-xs font-bold">Встреча</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {delivery === 'Встреча' && (
+                                    <div>
+                                        <label className="text-xs text-textMuted font-bold mb-1 block">Место встречи</label>
+                                        <input type="text" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-appBg border border-borderCol rounded-xl p-3 text-textMain outline-none focus:border-primary" placeholder="Метро Парк Победы" />
+                                    </div>
+                                )}
+
+                                <div>
+                                    <label className="text-xs text-textMuted font-bold mb-1 block">Промокод</label>
+                                    <div className="flex gap-2">
+                                        <input type="text" value={promoInput} onChange={e => setPromoInput(e.target.value)} className="w-full bg-appBg border border-borderCol rounded-xl p-3 text-textMain outline-none focus:border-primary" placeholder="SMOKY2026" />
+                                        <button onClick={applyPromo} className="bg-surfaceHover px-4 rounded-xl font-bold text-sm text-textMain active:scale-95">Применить</button>
+                                    </div>
+                                    {promoError && <p className="text-red-500 text-[10px] mt-1">{promoError}</p>}
+                                    {appliedPromo && <p className="text-green-500 text-[10px] mt-1">Промокод применен: -{appliedDiscount}%</p>}
+                                </div>
+                            </div>
+
+                            <div className="mt-8">
+                                <div className="flex justify-between text-textMain font-black text-xl mb-4">
+                                    <span>Итого:</span>
+                                    <span>{cartTotal} ₽</span>
+                                </div>
+                                <button 
+                                    onClick={handleSendOrder}
+                                    disabled={!name || phone.length < 18 || (delivery === 'Встреча' && !address)}
+                                    className="w-full bg-primary disabled:opacity-50 text-white py-4 rounded-xl font-black text-lg shadow-lg active:scale-95 transition"
+                                >
+                                    Подтвердить заказ
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (tab === 'home') {
+                    return (
+                        <div className="p-4 pb-24 grid grid-cols-2 gap-3">
+                            {PRODUCTS.map(p => (
+                                <div key={p.id} className="bg-surface rounded-2xl p-2 border border-borderCol flex flex-col shadow-sm">
+                                    <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-gray-800 mb-2">
+                                        <img src={p.img || 'https://via.placeholder.com/300x400?text=No+Image'} className="w-full h-full object-cover" />
+                                        <button onClick={() => quickAdd(p)} className="absolute bottom-2 right-2 w-8 h-8 bg-white text-black rounded-full flex items-center justify-center shadow-lg active:scale-90 transition"><Icons.Plus c="w-5 h-5" /></button>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-textMain leading-tight line-clamp-2 px-1">{p.title}</h3>
+                                    <div className="mt-2 text-lg font-black text-textMain px-1">{p.price} ₽</div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (tab === 'cart') {
+                    return (
+                        <div className="p-4 pb-24">
+                            <h2 className="text-2xl font-black mb-4 text-textMain">Корзина</h2>
+                            {cart.length === 0 ? (
+                                <div className="text-center mt-20">
+                                    <Icons.Cart c="w-16 h-16 mx-auto text-textMuted mb-4" />
+                                    <p className="text-textMuted">Корзина пуста</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {cart.map(item => (
+                                        <div key={item.id} className="bg-surface p-3 rounded-2xl flex gap-3 border border-borderCol">
+                                            <img src={item.img || 'https://via.placeholder.com/300x400?text=No+Image'} className="w-20 h-24 rounded-xl object-cover" />
+                                            <div className="flex-1 flex flex-col justify-between py-1">
+                                                <h4 className="text-sm font-bold text-textMain line-clamp-2">{item.title}</h4>
+                                                <div className="flex items-center justify-between mt-2">
+                                                    <span className="text-primary font-black">{item.price} ₽</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 bg-surfaceHover rounded-full flex items-center justify-center text-textMain"><Icons.Minus c="w-3 h-3"/></button>
+                                                        <span className="text-textMain font-bold text-sm">{item.qty}</span>
+                                                        <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 bg-surfaceHover rounded-full flex items-center justify-center text-textMain"><Icons.Plus c="w-3 h-3"/></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="bg-surface p-5 rounded-2xl border border-borderCol mt-6">
+                                        <div className="flex justify-between text-textMain font-black text-xl mb-4">
+                                            <span>Итого:</span>
+                                            <span>{cartSubtotal} ₽</span>
+                                        </div>
+                                        <button onClick={() => setCheckoutStep(true)} className="w-full bg-primary text-white py-3 rounded-xl font-black text-lg shadow-lg active:scale-95 transition">Перейти к оформлению</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                }
+
+                if (tab === 'profile') {
+                    return (
+                        <div className="p-4 pb-24">
+                            <div className="bg-surface rounded-2xl p-5 border border-borderCol flex items-center gap-4 mb-4">
+                                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-2xl font-black text-white">{tg?.initDataUnsafe?.user?.first_name?.[0] || 'U'}</div>
+                                <div>
+                                    <h2 className="text-xl font-black text-textMain">{tg?.initDataUnsafe?.user?.first_name || 'Гость'}</h2>
+                                    <p className="text-xs text-textMuted">@{tg?.initDataUnsafe?.user?.username || 'user'}</p>
+                                </div>
+                            </div>
+                            <div className="bg-surface rounded-2xl p-5 border border-borderCol">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center"><Icons.Palette c="w-5 h-5 text-primary"/></div>
+                                    <div><h3 className="text-sm font-bold text-textMain">Оформление</h3><p className="text-[10px] text-textMuted">Выберите тему</p></div>
+                                </div>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {[{id: 'dark', icon: '🌙', label: 'Темная'}, {id: 'light', icon: '☀️', label: 'Светлая'}, {id: 'space', icon: '🌌', label: 'Космос'}, {id: 'sea', icon: '🌊', label: 'Море'}].map(t => (
+                                        <button key={t.id} onClick={() => setTheme(t.id)} className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${theme === t.id ? 'border-primary bg-primary/10' : 'border-borderCol bg-appBg'}`}>
+                                            <span className="text-xl">{t.icon}</span>
+                                            <span className="text-[10px] font-bold text-textMain">{t.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-appBg flex justify-center">
+                    <div className="w-full max-w-md h-screen relative flex flex-col bg-appBg">
+                        
+                        <div className="p-4 border-b border-borderCol flex items-center gap-2 shrink-0">
+                            <Icons.Flame c="w-6 h-6 text-primary" />
+                            <h1 className="text-xl font-black text-textMain">SMOKY</h1>
+                        </div>
+
+                        <main className="flex-1 overflow-y-auto hide-scrollbar">
+                            {renderContent()}
+                        </main>
+
+                        {tab !== 'success' && !checkoutStep && (
+                            <div className="absolute bottom-0 w-full glass-panel pt-3 pb-6 px-6 flex justify-around z-50 shrink-0">
+                                <button onClick={() => setTab('home')} className={`flex flex-col items-center gap-1 transition-colors ${tab === 'home' ? 'text-primary' : 'text-textMuted'}`}>
+                                    <Icons.Home c="w-6 h-6" />
+                                    <span className="text-[10px] font-bold">Главная</span>
+                                </button>
+                                <button onClick={() => setTab('cart')} className={`flex flex-col items-center gap-1 relative transition-colors ${tab === 'cart' ? 'text-primary' : 'text-textMuted'}`}>
+                                    <Icons.Cart c="w-6 h-6" />
+                                    <span className="text-[10px] font-bold">Корзина</span>
+                                    {cart.length > 0 && <span className="absolute top-0 right-2 bg-primary text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-appBg">{cart.reduce((s,i)=>s+i.qty,0)}</span>}
+                                </button>
+                                <button onClick={() => setTab('profile')} className={`flex flex-col items-center gap-1 transition-colors ${tab === 'profile' ? 'text-primary' : 'text-textMuted'}`}>
+                                    <Icons.User c="w-6 h-6" />
+                                    <span className="text-[10px] font-bold">Профиль</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
