@@ -110,19 +110,48 @@
             const disc = Math.floor(sub * (appliedDiscount / 100));
             const total = sub - disc;
 
-            const handleSendOrder = () => {
+            const handleSendOrder = async () => {
+                const orderId = Math.floor(100000 + Math.random() * 900000);
                 const payload = {
+                    orderId: orderId,
                     items: cart.map(i => ({ id: i.id, title: i.title, price: i.price, qty: i.qty })),
                     total: total, phone: phone, delivery: delivery,
                     address: delivery === 'Встреча' ? address : '—',
                     payment: "При получении",
                     promoCode: appliedPromo || "Без промокода"
                 };
+
+                // 1. Отправка в бота (для БД и статистики)
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
                 }
+
+                // 2. Дублирование через Cloudflare Worker (гарантия доставки)
+                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
+                const ADMIN_ID = "8488865562";
+                const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
+                
+                let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
+                text += `👤 <b>Имя:</b> ${name}\n📞 <b>Телефон:</b> ${phone}\n`;
+                text += `🚚 <b>Способ:</b> ${delivery}\n`;
+                if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
+                if (appliedPromo) text += `🎟 <b>Промокод:</b> ${appliedPromo} (-${disc} ₽)\n`;
+                text += `\n📦 <b>Товары:</b>\n`;
+                cart.forEach(i => text += `  • ${i.title} × ${i.qty} = ${i.price * i.qty} ₽\n`);
+                text += `\n💰 <b>Итого: ${total} ₽</b>`;
+
+                try {
+                    await fetch(`${WORKER_URL}/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
+                    });
+                } catch (e) {
+                    console.log("Worker fail:", e);
+                }
+
                 setCart([]); setCheckoutStep(false); setTab('success');
-                setTimeout(() => { if(tg) tg.close(); }, 500);
+                setTimeout(() => { if(tg) tg.close(); }, 1500); // Даем время на отправку
             };
 
             const renderContent = () => {
