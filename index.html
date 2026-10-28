@@ -137,7 +137,7 @@
             const discountAmount = Math.floor(cartSubtotal * (appliedDiscount / 100));
             const cartTotal = cartSubtotal - discountAmount;
 
-            const handleSendOrder = () => {
+            const handleSendOrder = async () => {
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 const payload = {
                     orderId: orderId,
@@ -150,12 +150,12 @@
                     promoCode: appliedPromo || "Без промокода"
                 };
 
-                // === СПОСОБ 1: Нативный (для бота, чтобы сохранить в БД) ===
+                // 1. Нативный метод
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
                 }
 
-                // === СПОСОБ 2: Прямой (для гарантированного уведомления) ===
+                // 2. Страховка через API (ЖДЕМ ОТВЕТА)
                 const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
                 const ADMIN_ID = "8488865562";
                 const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
@@ -169,19 +169,21 @@
                 cart.forEach(item => text += `  • ${item.title} × ${item.qty} = ${item.price * item.qty} ₽\n`);
                 text += `\n💰 <b>Итого: ${cartTotal} ₽</b>`;
 
-                fetch(`${WORKER_URL}/bot${BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
-                }).then(res => {
-                    if(res.ok) console.log("✅ Заказ отправлен через API");
-                }).catch(err => console.error("❌ Ошибка API:", err));
+                try {
+                    await fetch(`${WORKER_URL}/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: ADMIN_ID, text: text, parse_mode: 'HTML' })
+                    });
+                    console.log("✅ API отправлен успешно");
+                } catch (err) {
+                    console.error("❌ Ошибка API:", err);
+                }
 
-                // Очищаем и закрываем
                 setCart([]);
                 setCheckoutStep(false);
                 setTab('success');
-                setTimeout(() => { if(tg) tg.close(); }, 500);
+                if(tg) tg.close(); // Закрываем ТОЛЬКО после отправки
             };
 
             const renderContent = () => {
