@@ -1229,6 +1229,8 @@
         }
 
         function submitOrder() {
+            alert("Шаг 1: Кнопка 'Подтвердить' нажата. Проверяем данные...");
+            
             const totalText = document.getElementById('checkout-total').innerText;
             const totalNum = parseFloat(totalText.replace(/[^0-9]/g, ''));
             
@@ -1236,9 +1238,11 @@
             const checkoutPhone = document.getElementById('checkout-phone').value.trim();
             
             if (!checkoutName || checkoutPhone.length < 10) {
-                showToast('Пожалуйста, заполните имя и телефон полностью!', true);
+                alert("Шаг 2: ОШИБКА ВАЛИДАЦИИ!\nИмя: [" + checkoutName + "]\nТелефон: [" + checkoutPhone + "] (длина: " + checkoutPhone.length + " символов).\n\nНужно ввести имя и полный телефон (11 цифр)!");
                 return;
             }
+
+            alert("Шаг 2: Данные заполнены верно. Сохраняем в память...");
 
             if(checkoutName) localStorage.setItem('galleon_delivery_name', checkoutName);
             if(checkoutPhone) localStorage.setItem('galleon_delivery_phone', checkoutPhone);
@@ -1246,15 +1250,30 @@
             lastOrderNumber++;
             localStorage.setItem('galleon_last_order', lastOrderNumber);
 
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+            const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+            userOrders.unshift({
+                id: lastOrderNumber,
+                date: `${dateStr}, ${timeStr}`, 
+                total: totalNum,
+                status: 'В обработке'
+            });
+            localStorage.setItem('galleon_orders', JSON.stringify(userOrders));
+
+            totalSpent += totalNum;
+            localStorage.setItem('galleon_spent', totalSpent);
+
             let totalItemsBought = cart.reduce((sum, item) => sum + item.qty, 0);
             caseBalances.bronze += totalItemsBought; 
             localStorage.setItem('galleon_cases', JSON.stringify(caseBalances));
 
-            // Отправляем данные в Телеграм
+            alert("Шаг 3: Проверяем Telegram...");
+
             if (window.Telegram && window.Telegram.WebApp) {
                 const tgApp = window.Telegram.WebApp;
                 
-                // Собираем товары в формат, который ждет app.py
                 const botItems = cart.map(item => ({
                     id: item.id,
                     title: item.name,
@@ -1282,14 +1301,18 @@
                     promoCode: promoCodeStr
                 };
 
-                // Эта команда закрывает сайт и отправляет данные боту
-                tgApp.sendData(JSON.stringify(payload));
+                alert("Шаг 4: Всё готово! Сейчас приложение закроется и отправит заказ боту.");
+                
+                try {
+                    tgApp.sendData(JSON.stringify(payload));
+                } catch (e) {
+                    alert("Ошибка при отправке в Telegram: " + e.message);
+                }
                 
             } else {
-                alert(`Спасибо за заказ #${lastOrderNumber} на сумму ${totalText}!\n\n(Вы открыли сайт не через Telegram)`);
+                alert("Шаг 4: ОШИБКА! Телеграм не найден. Вы открыли сайт в обычном браузере?");
             }
 
-            // Очищаем корзину
             cart = [];
             promoDiscountPercent = 0;
             currentDiscountType = 'none';
@@ -1299,7 +1322,6 @@
             updateCart();
             switchTab('home');
         }
-
         // --- 9. ПРОФИЛЬ И РАНГИ ---
         function toggleOrders() {
             const list = document.getElementById('orders-list');
