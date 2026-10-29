@@ -1290,23 +1290,17 @@
                     promoCodeStr = document.getElementById('promo-input').value.trim().toUpperCase();
                 }
 
-                const payload = {
-                    orderId: lastOrderNumber,
-                    items: botItems,
-                    total: totalNum,
-                    phone: checkoutPhone,
-                    delivery: deliveryMethod,
-                    address: isPickup ? '—' : 'Уточнить по телефону',
-                    payment: "При получении",
-                    promoCode: promoCodeStr
+                                const payload = {
+                    test: "OK"
                 };
 
                 const dataString = JSON.stringify(payload);
                 alert("Данные для бота: " + dataString); // <--- Покажет, что мы отправляем
                 
-                try {
-                    tgApp.sendData(dataString);
-                    tgApp.close(); 
+                                try {
+                    alert("Пробуем отправить тест...");
+                    tgApp.sendData(JSON.stringify(payload));
+                    tgApp.close();
                 } catch (e) {
                     alert("Ошибка Telegram: " + e.message);
                 }
