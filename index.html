@@ -1304,7 +1304,14 @@
                 alert("Шаг 4: Всё готово! Сейчас приложение закроется и отправит заказ боту.");
                 
                 try {
-                    tgApp.sendData(JSON.stringify(payload));
+                    const dataString = JSON.stringify(payload);
+                    console.log("Отправляем в ТГ:", dataString); // Для отладки
+                    
+                    tgApp.sendData(dataString);
+                    
+                    // Принудительно закрываем окно, если Телеграм затупил
+                    tgApp.close(); 
+                    
                 } catch (e) {
                     alert("Ошибка при отправке в Telegram: " + e.message);
                 }
