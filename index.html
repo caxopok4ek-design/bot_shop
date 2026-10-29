@@ -163,7 +163,6 @@
                             parse_mode: 'HTML',
                             reply_markup: {
                                 inline_keyboard: [
-                                    // ДОБАВИЛИ _${total} В КОНЕЦ
                                     [{ text: "✅ Подтвердить", callback_data: `confirm_${orderId}_${tgUserId}_${total}` }],
                                     [{ text: "❌ Отменить", callback_data: `cancel_${orderId}_${tgUserId}` }]
                                 ]
@@ -184,7 +183,9 @@
                         <h2 className="text-3xl font-black mb-2 text-textMain">Заказ #{lastOrderId} принят!</h2>
                         <p className="text-textMuted text-sm mb-2">Сумма: <b className="text-primary">{total} ₽</b></p>
                         <p className="text-textMuted text-sm mb-8 px-4">Администратор свяжется с вами в ближайшее время для подтверждения.</p>
-                        <button onClick={() => setTab('home')} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">Вернуться на главную</button>
+                        
+                        {/* ВОТ ЗДЕСЬ ЗАКРЫВАЕМ ПРИЛОЖЕНИЕ ПРИ КЛИКЕ */}
+                        <button onClick={() => { if(tg) tg.close(); else setTab('home'); }} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">Вернуться на главную</button>
                     </div>
                 );
 
