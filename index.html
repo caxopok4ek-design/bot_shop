@@ -1235,7 +1235,6 @@
             const checkoutName = document.getElementById('checkout-name').value.trim();
             const checkoutPhone = document.getElementById('checkout-phone').value.trim();
             
-            // Проверка на заполнение (обязательно полный номер)
             if (!checkoutName || checkoutPhone.length < 10) {
                 showToast('Пожалуйста, заполните имя и телефон полностью!', true);
                 return;
