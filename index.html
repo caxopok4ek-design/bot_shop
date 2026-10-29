@@ -110,83 +110,33 @@
             const disc = Math.floor(sub * (appliedDiscount / 100));
             const total = sub - disc;
 
-            const handleSendOrder = async () => {
+            const handleSendOrder = () => {
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 setLastOrderId(orderId);
-
-                const tgUser = tg?.initDataUnsafe?.user;
-                const tgUserId = tgUser ? tgUser.id : '0';
-                const tgUsername = tgUser ? tgUser.username : '';
 
                 const payload = {
                     orderId: orderId,
                     items: cart.map(i => ({ id: i.id, title: i.title, price: i.price, qty: i.qty })),
-                    total: total, phone: phone, delivery: delivery,
+                    total: total, 
+                    phone: phone, 
+                    delivery: delivery,
                     address: delivery === 'Встреча' ? address : '—',
                     payment: "При получении",
                     promoCode: appliedPromo || "Без промокода"
                 };
 
+                // ЭТА СТРОКА ПЕРЕДАЕТ ЗАКАЗ БОТУ
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
-                }
-
-                const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
-                const ADMIN_ID = "8488865562";
-                const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
-                
-                let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
-                text += `👤 <b>Имя:</b> ${name}\n`;
-                text += `📞 <b>Телефон:</b> ${phone}\n`;
-                text += `🆔 <b>ID:</b> <code>${tgUserId}</code>\n`;
-                
-                if (tgUsername) {
-                    text += `💬 <b>Telegram:</b> <a href="https://t.me/${tgUsername}">@${tgUsername}</a>\n`;
+                    
+                    // Очищаем корзину и показываем экран успеха
+                    setCart([]); 
+                    setCheckoutStep(false);
+                    setTab('success');
                 } else {
-                    text += `💬 <b>Telegram:</b> <a href="tg://user?id=${tgUserId}">Написать</a>\n`;
+                    alert("Ошибка: Откройте приложение через кнопку в Telegram!");
                 }
-                
-                text += `🚚 <b>Способ:</b> ${delivery}\n`;
-                if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
-                if (appliedPromo) text += `🎟 <b>Промокод:</b> ${appliedPromo} (-${disc} ₽)\n`;
-                text += `\n📦 <b>Товары:</b>\n`;
-                cart.forEach(i => text += `  • ${i.title} × ${i.qty} = ${i.price * i.qty} ₽\n`);
-                text += `\n💰 <b>Итого: ${total} ₽</b>`;
-
-                try {
-                    await fetch(`${WORKER_URL}/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            chat_id: ADMIN_ID, 
-                            text: text, 
-                            parse_mode: 'HTML',
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [{ text: "✅ Подтвердить", callback_data: `confirm_${orderId}_${tgUserId}_${total}` }],
-                                    [{ text: "❌ Отменить", callback_data: `cancel_${orderId}_${tgUserId}` }]
-                                ]
-                            }
-                        })
-                    });
-                } catch (e) {
-                    console.log("Worker fail:", e);
-                }
-
-                setCart([]); setCheckoutStep(false); setTab('success');
             };
-
-            const renderContent = () => {
-                if (tab === 'success') return (
-                    <div className="flex flex-col items-center justify-center h-[75vh] px-6 text-center">
-                        <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6"><div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center"><Icons.Check c="w-8 h-8 text-white" /></div></div>
-                        <h2 className="text-3xl font-black mb-2 text-textMain">Заказ #{lastOrderId} принят!</h2>
-                        <p className="text-textMuted text-sm mb-2">Сумма: <b className="text-primary">{total} ₽</b></p>
-                        <p className="text-textMuted text-sm mb-8 px-4">Администратор свяжется с вами в ближайшее время для подтверждения.</p>
-                        <button onClick={() => { if(tg) tg.close(); else setTab('home'); }} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">Вернуться на главную</button>
-                    </div>
-                );
-
                 if (checkoutStep) return (
                     <div className="p-4 pb-24">
                         <button onClick={() => setCheckoutStep(false)} className="text-textMuted mb-4 text-sm font-bold">← В корзину</button>
