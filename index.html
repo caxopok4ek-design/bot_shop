@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GALLEON UK</title>
-    <!-- ДОБАВЛЕНО: Скрипт Telegram для отправки данных боту -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <style>
         :root {
             --bg-color: #121212;
@@ -347,7 +345,7 @@
             <div class="top-header">
                 <h1><span style="font-size: 24px;">⚓</span> GALLEON UK</h1>
                 <div class="flex items-center gap-2">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80') center/cover; border: 2px solid var(--accent-main); box-shadow: 0 0 15px var(--accent-glow);"></div>
+                    <div id="header-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80') center/cover; border: 2px solid var(--accent-main); box-shadow: 0 0 15px var(--accent-glow);"></div>
                 </div>
             </div>
             <div class="top-pills">
@@ -499,10 +497,10 @@
             <!-- ПРОФИЛЬ -->
             <div id="screen-profile" class="screen">
                 <div class="profile-card flex items-center gap-3" style="gap: 15px;">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="avatar">
+                    <img id="profile-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="avatar">
                     <div>
-                        <h3 style="font-size: 18px; margin-bottom: 4px;">Пират</h3>
-                        <p style="color: var(--accent-main); font-size: 13px; text-shadow: 0 0 5px var(--accent-glow);">@Galleon_User</p>
+                        <h3 id="profile-name-display" style="font-size: 18px; margin-bottom: 4px;">Пират</h3>
+                        <p id="profile-username-display" style="color: var(--accent-main); font-size: 13px; text-shadow: 0 0 5px var(--accent-glow);">@Galleon_User</p>
                     </div>
                 </div>
 
@@ -556,7 +554,7 @@
                     </div>
                     <div class="input-group">
                         <label>Ваш Telegram (@username) *</label>
-                        <input type="text" value="@Galleon_User">
+                        <input type="text" id="checkout-username" value="@Galleon_User" readonly style="opacity: 0.7;">
                     </div>
                     <div class="input-group">
                         <label>Телефон для связи *</label>
@@ -711,6 +709,17 @@
     <div id="toast">Успешно</div>
 
     <script>
+        // --- БЕЗОПАСНАЯ ЗАГРУЗКА ДАННЫХ ---
+        function safeParse(key, fallback) {
+            try {
+                const val = localStorage.getItem(key);
+                if (!val) return fallback;
+                return JSON.parse(val);
+            } catch (e) {
+                return fallback;
+            }
+        }
+
         // --- 1. ВОЗРАСТ И ВАЛИДАЦИЯ ---
         function verifyAge(isAdult) {
             if (isAdult) {
@@ -721,10 +730,13 @@
                 window.location.href = "https://www.google.com";
             }
         }
-        if (localStorage.getItem('galleon_age') === 'true') {
-            document.getElementById('age-gate').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-        }
+        
+        try {
+            if (localStorage.getItem('galleon_age') === 'true') {
+                document.getElementById('age-gate').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+            }
+        } catch(e) {}
 
         function validateName(input) {
             input.value = input.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s]/g, '');
@@ -744,15 +756,14 @@
             input.value = formatted;
         }
 
-        // --- 2. ПЕРЕМЕННЫЕ ---
+        // --- 2. ПЕРЕМЕННЫЕ (ЗАЩИЩЕННЫЕ) ---
         let cart = [];
-        let favorites = JSON.parse(localStorage.getItem('galleon_favorites')) || [];
+        let favorites = safeParse('galleon_favorites', []);
         let totalSpent = parseFloat(localStorage.getItem('galleon_spent')) || 0;
-        let userOrders = JSON.parse(localStorage.getItem('galleon_orders')) || [];
-        let caseBalances = JSON.parse(localStorage.getItem('galleon_cases')) || { bronze: 0, gold: 0, legendary: 0 };
-        let inventory = JSON.parse(localStorage.getItem('galleon_inventory')) || [];
+        let userOrders = safeParse('galleon_orders', []);
+        let caseBalances = safeParse('galleon_cases', { bronze: 0, gold: 0, legendary: 0 });
+        let inventory = safeParse('galleon_inventory', []);
         let lastDailyOpen = parseInt(localStorage.getItem('galleon_daily_date')) || 0;
-        
         let lastOrderNumber = parseInt(localStorage.getItem('galleon_last_order')) || 1040;
 
         let currentDiscountType = 'none'; 
@@ -767,6 +778,13 @@
         let hasRefDiscount = localStorage.getItem('galleon_ref_discount') === 'true';
         let lastWonPrize = null;
         let lastWonCaseId = null;
+
+        // --- ДОБАВЛЕНО: Данные пользователя из Telegram ---
+        const tg = window.Telegram?.WebApp;
+        const tgUser = tg?.initDataUnsafe?.user;
+        const tgUsername = tgUser?.username ? `@${tgUser.username}` : 'Не указан';
+        const tgPhoto = tgUser?.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+        const tgName = tgUser?.first_name || 'Гость';
 
         // --- 3. НАВИГАЦИЯ ---
         function switchTab(tabId, element) {
@@ -799,8 +817,13 @@
 
         // --- 4. ДАННЫЕ ---
         function loadDeliveryDataToCheckout() {
-            document.getElementById('checkout-name').value = localStorage.getItem('galleon_delivery_name') || '';
+            document.getElementById('checkout-name').value = localStorage.getItem('galleon_delivery_name') || tgName;
             document.getElementById('checkout-phone').value = localStorage.getItem('galleon_delivery_phone') || '';
+            
+            const userField = document.getElementById('checkout-username');
+            if (userField) {
+                userField.value = tgUsername;
+            }
         }
 
         function loadDeliveryDataToProfile() {
@@ -1235,7 +1258,6 @@
             const checkoutName = document.getElementById('checkout-name').value.trim();
             const checkoutPhone = document.getElementById('checkout-phone').value.trim();
             
-            // Проверка, чтобы не отправить пустой заказ
             if (!checkoutName || checkoutPhone.length < 10) {
                 showToast('Пожалуйста, заполните имя и телефон!', true);
                 return;
@@ -1274,16 +1296,15 @@
                 }
             }
 
-            // ОТПРАВЛЯЕМ ДАННЫЕ БОТУ
             if (window.Telegram && window.Telegram.WebApp) {
                 const tg = window.Telegram.WebApp;
                 
-                // Собираем товары в правильном формате для app.py
                 const botItems = cart.map(item => ({
                     id: item.id,
                     title: item.name,
                     price: item.price,
-                    qty: item.qty
+                    qty: item.qty,
+                    img: item.img // <--- ДОБАВЛЕНО: Передаем эмодзи товара
                 }));
 
                 const isPickup = document.getElementById('delivery-pickup').classList.contains('active');
@@ -1305,15 +1326,12 @@
                     promoCode: promoCodeStr
                 };
 
-                // Передаем заказ боту
                 tg.sendData(JSON.stringify(payload));
                 
             } else {
-                // Если открыто просто в браузере (для теста)
                 alert(`Спасибо за заказ #${lastOrderNumber} на сумму ${totalText}!\n\nЗа ${totalItemsBought} купленных позиций вам выдано ${totalItemsBought} Сундук(ов) Юнги!`);
             }
 
-            // Очищаем корзину
             cart = [];
             promoDiscountPercent = 0;
             currentDiscountType = 'none';
@@ -1807,6 +1825,16 @@
         renderProfile();
         loadDeliveryDataToCheckout();
         loadDeliveryDataToProfile();
+
+        // --- ДОБАВЛЕНО: Подставляем фото и имя в профиль ---
+        if (document.getElementById('header-avatar')) {
+            document.getElementById('header-avatar').style.backgroundImage = `url('${tgPhoto}')`;
+        }
+        if (document.getElementById('profile-avatar')) {
+            document.getElementById('profile-avatar').src = tgPhoto;
+            document.getElementById('profile-name-display').innerText = tgName;
+            document.getElementById('profile-username-display').innerText = tgUsername;
+        }
     </script>
 </body>
 </html>
