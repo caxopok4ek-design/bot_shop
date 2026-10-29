@@ -114,6 +114,10 @@
                 const orderId = Math.floor(100000 + Math.random() * 900000);
                 setLastOrderId(orderId);
 
+                const tgUser = tg?.initDataUnsafe?.user;
+                const tgUserId = tgUser ? tgUser.id : '0';
+                const tgUsername = tgUser ? tgUser.username : '';
+
                 const payload = {
                     orderId: orderId,
                     items: cart.map(i => ({ id: i.id, title: i.title, price: i.price, qty: i.qty })),
@@ -123,21 +127,25 @@
                     promoCode: appliedPromo || "Без промокода"
                 };
 
-                // 1. Сохраняем в базу (бот прочитает и запишет, но сообщение НЕ отправит)
                 if (tg && typeof tg.sendData === 'function') {
                     tg.sendData(JSON.stringify(payload));
                 }
 
-                // 2. Отправляем тебе уведомление с кнопками через Cloudflare Worker
                 const BOT_TOKEN = "8662172866:AAGdyly9uvCAblTuB50bz0IdNJKjo-NF45Q";
                 const ADMIN_ID = "8488865562";
                 const WORKER_URL = "https://my-tg-proxy.caxopok4ek.workers.dev";
                 
                 let text = `🔔 <b>НОВЫЙ ЗАКАЗ #${orderId}</b>\n\n`;
-                text += `👤 <b>Имя:</b> ${name}\n📞 <b>Телефон:</b> ${phone}\n`;
-                if (tg?.initDataUnsafe?.user?.username) {
-                    text += `💬 <b>Telegram:</b> <a href="https://t.me/${tg.initDataUnsafe.user.username}">@${tg.initDataUnsafe.user.username}</a>\n`;
+                text += `👤 <b>Имя:</b> ${name}\n`;
+                text += `📞 <b>Телефон:</b> ${phone}\n`;
+                text += `🆔 <b>ID:</b> <code>${tgUserId}</code>\n`;
+                
+                if (tgUsername) {
+                    text += `💬 <b>Telegram:</b> <a href="https://t.me/${tgUsername}">@${tgUsername}</a>\n`;
+                } else {
+                    text += `💬 <b>Telegram:</b> <a href="tg://user?id=${tgUserId}">Написать</a>\n`;
                 }
+                
                 text += `🚚 <b>Способ:</b> ${delivery}\n`;
                 if (delivery === 'Встреча') text += `📍 <b>Место:</b> ${address}\n`;
                 if (appliedPromo) text += `🎟 <b>Промокод:</b> ${appliedPromo} (-${disc} ₽)\n`;
@@ -155,8 +163,8 @@
                             parse_mode: 'HTML',
                             reply_markup: {
                                 inline_keyboard: [
-                                    [{ text: "✅ Подтвердить", callback_data: `confirm_${orderId}` }],
-                                    [{ text: "❌ Отменить", callback_data: `cancel_${orderId}` }]
+                                    [{ text: "✅ Подтвердить", callback_data: `confirm_${orderId}_${tgUserId}` }],
+                                    [{ text: "❌ Отменить", callback_data: `cancel_${orderId}_${tgUserId}` }]
                                 ]
                             }
                         })
