@@ -1229,8 +1229,6 @@
         }
 
         function submitOrder() {
-            alert("Шаг 1: Кнопка 'Подтвердить' нажата. Проверяем данные...");
-            
             const totalText = document.getElementById('checkout-total').innerText;
             const totalNum = parseFloat(totalText.replace(/[^0-9]/g, ''));
             
@@ -1238,11 +1236,9 @@
             const checkoutPhone = document.getElementById('checkout-phone').value.trim();
             
             if (!checkoutName || checkoutPhone.length < 10) {
-                alert("Шаг 2: ОШИБКА ВАЛИДАЦИИ!\nИмя: [" + checkoutName + "]\nТелефон: [" + checkoutPhone + "] (длина: " + checkoutPhone.length + " символов).\n\nНужно ввести имя и полный телефон (11 цифр)!");
+                showToast('Пожалуйста, заполните имя и телефон полностью!', true);
                 return;
             }
-
-            alert("Шаг 2: Данные заполнены верно. Сохраняем в память...");
 
             if(checkoutName) localStorage.setItem('galleon_delivery_name', checkoutName);
             if(checkoutPhone) localStorage.setItem('galleon_delivery_phone', checkoutPhone);
@@ -1269,11 +1265,10 @@
             caseBalances.bronze += totalItemsBought; 
             localStorage.setItem('galleon_cases', JSON.stringify(caseBalances));
 
-            alert("Шаг 3: Проверяем Telegram...");
-
             if (window.Telegram && window.Telegram.WebApp) {
                 const tgApp = window.Telegram.WebApp;
                 
+                // Собираем товары для бота (только здесь должно быть объявление botItems!)
                 const botItems = cart.map(item => ({
                     id: item.id,
                     title: item.name,
@@ -1290,18 +1285,6 @@
                     promoCodeStr = document.getElementById('promo-input').value.trim().toUpperCase();
                 }
 
-                // --- ВОЗВРАЩАЕМ НОРМАЛЬНЫЕ ДАННЫЕ ---
-                const botItems = cart.map(item => ({
-                    id: item.id,
-                    title: item.name,
-                    price: item.price,
-                    qty: item.qty,
-                    img: item.img 
-                }));
-
-                const isPickup = document.getElementById('delivery-pickup').classList.contains('active');
-                const deliveryMethod = isPickup ? 'Самовывоз' : 'Курьер';
-                
                 const payload = {
                     orderId: lastOrderNumber,
                     items: botItems,
@@ -1309,7 +1292,8 @@
                     phone: checkoutPhone,
                     delivery: deliveryMethod,
                     address: isPickup ? '—' : 'Уточнить по телефону',
-                    payment: "При получении"
+                    payment: "При получении",
+                    promoCode: promoCodeStr
                 };
 
                 try {
@@ -1317,9 +1301,8 @@
                 } catch (e) {
                     alert("Ошибка Telegram: " + e.message);
                 }
-
             } else {
-                alert("Шаг 4: ОШИБКА! Телеграм не найден. Вы открыли сайт в обычном браузере?");
+                alert(`Спасибо за заказ #${lastOrderNumber}!`);
             }
 
             cart = [];
