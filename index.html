@@ -1301,19 +1301,14 @@
                     promoCode: promoCodeStr
                 };
 
-                alert("Шаг 4: Всё готово! Сейчас приложение закроется и отправит заказ боту.");
+                const dataString = JSON.stringify(payload);
+                alert("Данные для бота: " + dataString); // <--- Покажет, что мы отправляем
                 
                 try {
-                    const dataString = JSON.stringify(payload);
-                    console.log("Отправляем в ТГ:", dataString); // Для отладки
-                    
                     tgApp.sendData(dataString);
-                    
-                    // Принудительно закрываем окно, если Телеграм затупил
                     tgApp.close(); 
-                    
                 } catch (e) {
-                    alert("Ошибка при отправке в Telegram: " + e.message);
+                    alert("Ошибка Telegram: " + e.message);
                 }
                 
             } else {
