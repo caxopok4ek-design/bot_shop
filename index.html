@@ -709,6 +709,12 @@
     <div id="toast">Успешно</div>
 
     <script>
+        // --- ИНИЦИАЛИЗАЦИЯ ТЕЛЕГРАМ ---
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
         // --- БЕЗОПАСНАЯ ЗАГРУЗКА ДАННЫХ ---
         function safeParse(key, fallback) {
             try {
@@ -779,7 +785,7 @@
         let lastWonPrize = null;
         let lastWonCaseId = null;
 
-        // --- ДОБАВЛЕНО: Данные пользователя из Telegram ---
+        // --- ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ИЗ ТЕЛЕГРАМ ---
         const tg = window.Telegram?.WebApp;
         const tgUser = tg?.initDataUnsafe?.user;
         const tgUsername = tgUser?.username ? `@${tgUser.username}` : 'Не указан';
@@ -1250,7 +1256,7 @@
             switchTab('checkout');
         }
 
-        // --- ОБНОВЛЕННАЯ ФУНКЦИЯ ОТПРАВКИ ЗАКАЗА В БОТ ---
+        // --- ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТПРАВКИ ЗАКАЗА ---
         function submitOrder() {
             const totalText = document.getElementById('checkout-total').innerText;
             const totalNum = parseFloat(totalText.replace(/[^0-9]/g, ''));
@@ -1304,7 +1310,7 @@
                     title: item.name,
                     price: item.price,
                     qty: item.qty,
-                    img: item.img // <--- ДОБАВЛЕНО: Передаем эмодзи товара
+                    img: item.img
                 }));
 
                 const isPickup = document.getElementById('delivery-pickup').classList.contains('active');
@@ -1826,7 +1832,7 @@
         loadDeliveryDataToCheckout();
         loadDeliveryDataToProfile();
 
-        // --- ДОБАВЛЕНО: Подставляем фото и имя в профиль ---
+        // Подставляем фото и имя в профиль
         if (document.getElementById('header-avatar')) {
             document.getElementById('header-avatar').style.backgroundImage = `url('${tgPhoto}')`;
         }
