@@ -163,7 +163,8 @@
                             parse_mode: 'HTML',
                             reply_markup: {
                                 inline_keyboard: [
-                                    [{ text: "✅ Подтвердить", callback_data: `confirm_${orderId}_${tgUserId}` }],
+                                    // ДОБАВИЛИ _${total} В КОНЕЦ
+                                    [{ text: "✅ Подтвердить", callback_data: `confirm_${orderId}_${tgUserId}_${total}` }],
                                     [{ text: "❌ Отменить", callback_data: `cancel_${orderId}_${tgUserId}` }]
                                 ]
                             }
