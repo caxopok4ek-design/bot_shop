@@ -1290,21 +1290,34 @@
                     promoCodeStr = document.getElementById('promo-input').value.trim().toUpperCase();
                 }
 
-                                const payload = {
-                    test: "OK"
+                // --- ВОЗВРАЩАЕМ НОРМАЛЬНЫЕ ДАННЫЕ ---
+                const botItems = cart.map(item => ({
+                    id: item.id,
+                    title: item.name,
+                    price: item.price,
+                    qty: item.qty,
+                    img: item.img 
+                }));
+
+                const isPickup = document.getElementById('delivery-pickup').classList.contains('active');
+                const deliveryMethod = isPickup ? 'Самовывоз' : 'Курьер';
+                
+                const payload = {
+                    orderId: lastOrderNumber,
+                    items: botItems,
+                    total: totalNum,
+                    phone: checkoutPhone,
+                    delivery: deliveryMethod,
+                    address: isPickup ? '—' : 'Уточнить по телефону',
+                    payment: "При получении"
                 };
 
-                const dataString = JSON.stringify(payload);
-                alert("Данные для бота: " + dataString); // <--- Покажет, что мы отправляем
-                
-                                try {
-                    alert("Пробуем отправить тест...");
+                try {
                     tgApp.sendData(JSON.stringify(payload));
-                    tgApp.close();
                 } catch (e) {
                     alert("Ошибка Telegram: " + e.message);
                 }
-                
+
             } else {
                 alert("Шаг 4: ОШИБКА! Телеграм не найден. Вы открыли сайт в обычном браузере?");
             }
