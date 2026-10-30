@@ -708,7 +708,11 @@
     <div id="toast">Успешно</div>
 
     <script>
-        // --- 1. ВОЗРАСТ И ВАЛИДАЦИЯ ---
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
         function verifyAge(isAdult) {
             if (isAdult) {
                 document.getElementById('age-gate').classList.add('hidden');
@@ -718,6 +722,7 @@
                 window.location.href = "https://www.google.com";
             }
         }
+        
         if (localStorage.getItem('galleon_age') === 'true') {
             document.getElementById('age-gate').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
@@ -730,18 +735,519 @@
         function formatPhone(input) {
             let val = input.value.replace(/\D/g, '');
             if (!val) { input.value = ''; return; }
-            
             if (val[0] === '8') val = '7' + val.slice(1);
             if (val[0] !== '7') val = '7' + val;
-            
             let res = '+7';
             if (val.length > 1) res += ' (' + val.slice(1, 4);
             if (val.length >= 4) res += ') ' + val.slice(4, 7);
             if (val.length >= 7) res += '-' + val.slice(7, 9);
             if (val.length >= 9) res += '-' + val.slice(9, 11);
-            
             input.value = res;
         }
+
+        let cart = [];
+        let favorites = JSON.parse(localStorage.getItem('galleon_favorites')) || [];
+        let totalSpent = parseFloat(localStorage.getItem('galleon_spent')) || 0;
+        let userOrders = JSON.parse(localStorage.getItem('galleon_orders')) || [];
+        let caseBalances = JSON.parse(localStorage.getItem('galleon_cases')) || { bronze: 0, gold: 0, legendary: 0 };
+        let inventory = JSON.parse(localStorage.getItem('galleon_inventory')) || [];
+        let lastDailyOpen = parseInt(localStorage.getItem('galleon_daily_date')) || 0;
+        let lastOrderNumber = parseInt(localStorage.getItem('galleon_last_order')) || 1040;
+
+        let currentDiscountType = 'none'; 
+        let promoDiscountPercent = 0;
+        let activeInvDiscount = null;
+        let deliveryCost = 0;
+        let currentProductToBuy = null;
+        let currentSort = 'popular';
+        let currentCategory = 'all';
+        let currentSearchQuery = '';
+        let hasRefDiscount = localStorage.getItem('galleon_ref_discount') === 'true';
+        let lastWonPrize = null;
+        let lastWonCaseId = null;
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + tabId).classList.add('active');
+            const header = document.getElementById('header-main');
+            if(tabId === 'checkout' || tabId === 'cart' || tabId === 'cases') { header.style.display = 'none'; } else { header.style.display = 'block'; }
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if(element) element.classList.add('active');
+            if(tabId === 'checkout') { updateCheckoutTotals(); loadDeliveryDataToCheckout(); renderInventoryDiscounts(); }
+            if(tabId === 'cases') renderCases(); 
+            if(tabId === 'favorites') renderFavorites();
+            if(tabId === 'profile') { renderProfile(); loadDeliveryDataToProfile(); }
+            if(tabId === 'cart') updateCart(); 
+        }
+
+        function loadDeliveryDataToCheckout() {
+            document.getElementById('checkout-name').value = localStorage.getItem('galleon_delivery_name') || '';
+            document.getElementById('checkout-phone').value = localStorage.getItem('galleon_delivery_phone') || '';
+        }
+
+        function loadDeliveryDataToProfile() {
+            document.getElementById('profile-name').value = localStorage.getItem('galleon_delivery_name') || '';
+            document.getElementById('profile-phone').value = localStorage.getItem('galleon_delivery_phone') || '';
+        }
+
+        function saveDeliveryData() {
+            const name = document.getElementById('profile-name').value.trim();
+            const phone = document.getElementById('profile-phone').value.trim();
+            localStorage.setItem('galleon_delivery_name', name);
+            localStorage.setItem('galleon_delivery_phone', phone);
+            showToast('Данные для доставки успешно сохранены!');
+        }
+
+        function copyRefLink() {
+            const link = document.getElementById('ref-link-text').innerText;
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Ссылка скопирована!');
+                localStorage.setItem('galleon_ref_discount', 'true');
+                hasRefDiscount = true;
+                renderInventoryDiscounts();
+            });
+        }
+
+        function toggleDiscountAccordion() {
+            const content = document.getElementById('discount-accordion');
+            const arrow = document.getElementById('accordion-arrow');
+            if (content.classList.contains('active')) { content.classList.remove('active'); arrow.innerText = '▼'; } 
+            else { content.classList.add('active'); arrow.innerText = '▲'; }
+        }
+
+        const products = [
+            { id: 1, name: "BJORN ТЕМНЫЙ ХОР", price: 500, img: "🦇", flavors: 15, mg: "70мг EXTRA", tag: "ТОП #1", desc: "Насыщенный вкус.", category: "liquids", stock: 15, popularity: 100 },
+            { id: 2, name: "РИК И МОРТИ", price: 450, img: "🧪", flavors: 10, mg: "50мг", tag: "ТОП #2", desc: "Кислый замерзон.", category: "liquids", stock: 8, popularity: 90 },
+            { id: 3, name: "САМОУБИЙЦА V2", price: 500, img: "💀", flavors: 11, mg: "100мг", tag: "НОВИНКА", desc: "Экстремальная крепость.", category: "liquids", stock: 3, popularity: 80 },
+            { id: 4, name: "POD SYSTEM X", price: 1500, img: "💨", flavors: 3, mg: "20мг", tag: "ХИТ", desc: "Удобная под-система.", category: "pods", stock: 5, popularity: 95 },
+            { id: 5, name: "ОДНОРАЗКА LUSH", price: 800, img: "📱", flavors: 5, mg: "50мг", tag: "", desc: "Яркий вкус на 3000 затяжек.", category: "disposables", stock: 10, popularity: 70 },
+            { id: 6, name: "ИСПАРИТЕЛЬ 0.6", price: 300, img: "⚙️", flavors: 1, mg: "-", tag: "", desc: "Сменный испаритель.", category: "accessories", stock: 20, popularity: 50 }
+        ];
+
+        function handleSearch() { currentSearchQuery = document.getElementById('search-input').value.toLowerCase(); renderProducts('catalog-products'); }
+
+        function renderProducts(containerId) {
+            const container = document.getElementById(containerId);
+            let filtered = currentCategory === 'all' ? [...products] : products.filter(p => p.category === currentCategory);
+            if(currentSearchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(currentSearchQuery) || p.desc.toLowerCase().includes(currentSearchQuery));
+            if (currentSort === 'popular') filtered.sort((a, b) => b.popularity - a.popularity); else if (currentSort === 'price') filtered.sort((a, b) => a.price - b.price);
+            if(filtered.length === 0) { container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px 0;">Ничего не найдено</div>`; return; }
+            container.innerHTML = filtered.map(p => {
+                const isFav = favorites.includes(p.id);
+                return `
+                <div class="product-card">
+                    ${p.tag ? `<div class="badge-top">${p.tag}</div>` : ''}
+                    <div class="heart-icon ${isFav ? 'active' : ''}" onclick="toggleFavorite(${p.id}, event)">${isFav ? '❤️' : '🤍'}</div>
+                    <div class="product-img">${p.img}</div>
+                    <div class="product-title">${p.name}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.3;">${p.desc}</div>
+                    <div class="badges-row"><span class="flavor-count">${p.flavors} вкусов</span><span class="nicotine-badge">${p.mg}</span></div>
+                    <div class="product-bottom"><div class="product-price">${p.price} ₽</div><div class="stock-status">В наличии</div></div>
+                    <button class="btn-buy-red" onclick="openFlavorModal(${p.id})">Выбрать вкус</button>
+                </div>`;
+            }).join('');
+        }
+        renderProducts('home-products'); renderProducts('catalog-products');
+
+        function filterCategory(cat, btn) { document.querySelectorAll('.categories-scroll .category-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentCategory = cat; renderProducts('catalog-products'); }
+        function sortProducts(type, btn) { document.querySelectorAll('.catalog-filters .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentSort = type; renderProducts('catalog-products'); }
+
+        function toggleFavorite(productId, event) {
+            event.stopPropagation(); const index = favorites.indexOf(productId);
+            if (index > -1) { favorites.splice(index, 1); showToast('Удалено из избранного'); } else { favorites.push(productId); showToast('Добавлено в избранное'); }
+            localStorage.setItem('galleon_favorites', JSON.stringify(favorites)); renderProducts('home-products'); renderProducts('catalog-products');
+            if(document.getElementById('screen-favorites').classList.contains('active')) renderFavorites();
+        }
+
+        function renderFavorites() {
+            const grid = document.getElementById('favorites-grid'); const empty = document.getElementById('favorites-empty');
+            if (favorites.length === 0) { grid.style.display = 'none'; empty.style.display = 'block'; } 
+            else {
+                grid.style.display = 'grid'; empty.style.display = 'none';
+                const favProducts = products.filter(p => favorites.includes(p.id));
+                grid.innerHTML = favProducts.map(p => `
+                    <div class="product-card">
+                        <div class="heart-icon active" onclick="toggleFavorite(${p.id}, event)">❤️</div>
+                        <div class="product-img">${p.img}</div>
+                        <div class="product-title">${p.name}</div>
+                        <div class="product-bottom"><div class="product-price">${p.price} ₽</div></div>
+                        <button class="btn-buy-red" onclick="openFlavorModal(${p.id})">В корзину</button>
+                    </div>`).join('');
+            }
+        }
+
+        function openFlavorModal(productId) {
+            const product = products.find(p => p.id === productId); currentProductToBuy = product;
+            document.getElementById('modal-title').innerText = product.name;
+            const flavorList = document.getElementById('flavor-list');
+            const dummyFlavors = product.category === 'liquids' ? ["Кислый Грейпфрут", "Мятная Жвачка", "Малина Лёд"] : ["Стандарт", "Ментол", "Кола"];
+            flavorList.innerHTML = dummyFlavors.map(flavor => `
+                <div class="flavor-item">
+                    <div><div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${flavor}</div><div style="font-size: 12px; color: var(--accent-gold);">⚡ Осталось: ${Math.floor(Math.random()*3)+1} шт.</div></div>
+                    <button class="btn-add-flavor" onclick="addToCart('${flavor}')">+ Выбрать</button>
+                </div>`).join('');
+            document.getElementById('flavor-modal').classList.add('active');
+        }
+
+        function closeModal(e) { if(e) e.preventDefault(); document.getElementById('flavor-modal').classList.remove('active'); }
+
+        function addToCart(flavor) {
+            const product = currentProductToBuy; const existingItem = cart.find(item => item.id === product.id && item.flavor === flavor);
+            if (existingItem) { existingItem.qty += 1; } else { cart.push({ ...product, flavor: flavor, qty: 1 }); }
+            closeModal(); showToast('Товар добавлен в корзину'); updateCartBadge(); updateCart();
+        }
+
+        function quickAdd(productId) {
+            const product = products.find(p => p.id === productId); const flavor = product.category === 'liquids' ? "Кислый Грейпфрут" : "Стандарт";
+            const existingItem = cart.find(item => item.id === product.id && item.flavor === flavor);
+            if (existingItem) existingItem.qty += 1; else cart.push({ ...product, flavor: flavor, qty: 1 });
+            showToast(`${product.name} добавлен!`); updateCartBadge(); updateCart();
+        }
+
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-badge');
+            if (totalItems > 0) { badge.innerText = totalItems; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+        }
+
+        function updateCart() {
+            const cartContainer = document.getElementById('cart-list'); let subtotal = 0;
+            const hasPods = cart.some(item => item.category === 'pods'); const hasLiquids = cart.some(item => item.category === 'liquids');
+            if (hasPods && !hasLiquids) document.getElementById('cross-sell-pod').classList.remove('hidden'); else document.getElementById('cross-sell-pod').classList.add('hidden');
+            if (hasLiquids && !hasPods) document.getElementById('cross-sell-liquid').classList.remove('hidden'); else document.getElementById('cross-sell-liquid').classList.add('hidden');
+
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `<div class="empty-cart"><div class="empty-cart-icon">🛒</div><div class="empty-cart-text">Ваша корзина пока пуста</div><button class="btn btn-outline" style="width: auto; padding: 10px 20px;" onclick="switchTab('catalog')">Перейти в каталог</button></div>`;
+                document.getElementById('cart-total').innerText = '0 ₽'; document.getElementById('cart-summary').style.display = 'none'; document.getElementById('checkout-btn').style.display = 'none'; return;
+            }
+            document.getElementById('cart-summary').style.display = 'flex'; document.getElementById('checkout-btn').style.display = 'block';
+            cartContainer.innerHTML = cart.map((item, index) => {
+                subtotal += item.price * item.qty; let stockLeft = item.stock - item.qty; 
+                return `
+                    <div class="cart-item">
+                        <div class="cart-item-img">${item.img}</div>
+                        <div class="cart-item-info" style="width: 100%; padding-right: 20px;">
+                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 2px;">${item.name}</div>
+                            <div style="display: inline-block; background: #2a1b15; color: var(--accent-main); padding: 2px 6px; border-radius: 4px; font-size: 10px; width: fit-content; margin-bottom: 4px;">✨ ${item.flavor}</div>
+                            <div class="cart-item-stock">⚡ Осталось на складе: ${stockLeft} шт.</div>
+                            <div class="flex justify-between items-center" style="margin-top: 8px;">
+                                <div style="font-size: 16px; font-weight: 900; color: var(--accent-main);">${item.price} ₽</div>
+                                <div class="flex items-center gap-2" style="background: #0a0a0a; border-radius: 8px; padding: 2px; border: 1px solid #333;">
+                                    <button onclick="changeQty(${index}, -1)" style="background:transparent; border:none; color:#fff; padding: 4px 10px; font-size: 16px;">-</button>
+                                    <span style="font-size: 14px;">${item.qty}</span>
+                                    <button onclick="changeQty(${index}, 1)" style="background:transparent; border:none; color:#fff; padding: 4px 10px; font-size: 16px;">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-delete-item" onclick="deleteCartItem(${index})">🗑️</div>
+                    </div>`;
+            }).join('');
+            document.getElementById('cart-total').innerText = subtotal + ' ₽'; 
+        }
+
+        function deleteCartItem(index) { cart.splice(index, 1); updateCartBadge(); updateCart(); }
+        function changeQty(index, delta) { cart[index].qty += delta; if (cart[index].qty <= 0) cart.splice(index, 1); updateCartBadge(); updateCart(); }
+
+        function getRankDiscountPercent() { if (totalSpent >= 50000) return 10; if (totalSpent >= 15000) return 5; return 0; }
+
+        function selectDelivery(type) {
+            document.getElementById('delivery-pickup').classList.remove('active'); document.getElementById('delivery-delivery').classList.remove('active');
+            if(type === 'pickup') { document.getElementById('delivery-pickup').classList.add('active'); deliveryCost = 0; document.getElementById('checkout-delivery-cost').innerText = 'Бесплатно'; document.getElementById('checkout-delivery-cost').style.color = 'var(--accent-green)'; } 
+            else { document.getElementById('delivery-delivery').classList.add('active'); deliveryCost = 300; document.getElementById('checkout-delivery-cost').innerText = '300 ₽'; document.getElementById('checkout-delivery-cost').style.color = 'var(--text-main)'; }
+            updateCheckoutTotals();
+        }
+
+        function renderInventoryDiscounts() {
+            const container = document.getElementById('inventory-discounts-container');
+            const discounts = inventory.filter(item => item.type === 'percent' || item.type === 'fixed');
+            const grouped = {};
+            discounts.forEach(d => { if (!grouped[d.name]) { grouped[d.name] = { ...d, count: 1 }; } else { grouped[d.name].count++; } });
+            let html = '';
+            const rankDisc = getRankDiscountPercent();
+            if (rankDisc > 0) html += `<div class="radio-item" onclick="selectDiscount('rank')"><input type="radio" name="discount" id="disc-rank"><label for="disc-rank" style="font-size: 14px; color: var(--accent-gold);">Скидка ранга (${rankDisc}%)</label></div>`;
+            if (hasRefDiscount) html += `<div class="radio-item" onclick="selectDiscount('ref')"><input type="radio" name="discount" id="disc-ref"><label for="disc-ref" style="font-size: 14px; color: var(--accent-green);">Реферальная скидка (10%)</label></div>`;
+            let index = 0;
+            for (const key in grouped) {
+                const d = grouped[key];
+                html += `<div class="radio-item" onclick="selectDiscount('inventory', ${index})"><input type="radio" name="discount" id="disc-inv-${index}"><label for="disc-inv-${index}" style="font-size: 14px; color: var(--accent-main);">${d.name} (x${d.count})</label></div>`;
+                index++;
+            }
+            container.innerHTML = html; window.groupedDiscounts = Object.values(grouped);
+        }
+
+        function selectDiscount(type, invIndex = null) {
+            currentDiscountType = type;
+            if (type === 'promo') { document.getElementById('promo-input-container').classList.remove('hidden'); activeInvDiscount = null; } 
+            else if (type === 'inventory' && invIndex !== null) { document.getElementById('promo-input-container').classList.add('hidden'); activeInvDiscount = window.groupedDiscounts[invIndex]; } 
+            else { document.getElementById('promo-input-container').classList.add('hidden'); activeInvDiscount = null; }
+            updateCheckoutTotals();
+        }
+
+        function applyPromo() {
+            const input = document.getElementById('promo-input').value.trim().toUpperCase();
+            if (input === 'GALLEON') { promoDiscountPercent = 10; showToast('Промокод на 10% применен!'); } else { promoDiscountPercent = 0; showToast('Неверный промокод', true); }
+            updateCheckoutTotals();
+        }
+
+        function updateCheckoutTotals() {
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let discountAmount = 0;
+            if (currentDiscountType === 'rank') discountAmount = subtotal * (getRankDiscountPercent() / 100);
+            else if (currentDiscountType === 'ref' && hasRefDiscount) discountAmount = subtotal * 0.10;
+            else if (currentDiscountType === 'promo' && promoDiscountPercent > 0) discountAmount = subtotal * (promoDiscountPercent / 100);
+            else if (currentDiscountType === 'inventory' && activeInvDiscount) { if (activeInvDiscount.type === 'percent') discountAmount = subtotal * (activeInvDiscount.value / 100); else if (activeInvDiscount.type === 'fixed') discountAmount = activeInvDiscount.value; }
+            let finalTotal = Math.max(0, subtotal - discountAmount + deliveryCost);
+            document.getElementById('checkout-subtotal').innerText = subtotal + ' ₽';
+            document.getElementById('checkout-discount').innerText = '-' + Math.round(discountAmount) + ' ₽';
+            document.getElementById('checkout-total').innerText = finalTotal + ' ₽';
+        }
+
+        function goToCheckout() { if (cart.length === 0) { showToast('Корзина пуста!', true); return; } switchTab('checkout'); }
+
+        // --- ОТПРАВКА В БОТ (ИСПРАВЛЕННАЯ) ---
+        function submitOrder() {
+            const totalText = document.getElementById('checkout-total').innerText;
+            const totalNum = parseFloat(totalText.replace(/[^0-9]/g, ''));
+            
+            const checkoutName = document.getElementById('checkout-name').value.trim();
+            const checkoutPhone = document.getElementById('checkout-phone').value.trim();
+            
+            if (!checkoutName || checkoutPhone.length < 10) {
+                showToast('Пожалуйста, заполните имя и телефон полностью!', true);
+                return;
+            }
+
+            if(checkoutName) localStorage.setItem('galleon_delivery_name', checkoutName);
+            if(checkoutPhone) localStorage.setItem('galleon_delivery_phone', checkoutPhone);
+
+            lastOrderNumber++;
+            localStorage.setItem('galleon_last_order', lastOrderNumber);
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+            const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+            userOrders.unshift({
+                id: lastOrderNumber,
+                date: `${dateStr}, ${timeStr}`, 
+                total: totalNum,
+                status: 'В обработке'
+            });
+            localStorage.setItem('galleon_orders', JSON.stringify(userOrders));
+
+            totalSpent += totalNum;
+            localStorage.setItem('galleon_spent', totalSpent);
+
+            let totalItemsBought = cart.reduce((sum, item) => sum + item.qty, 0);
+            caseBalances.bronze += totalItemsBought; 
+            localStorage.setItem('galleon_cases', JSON.stringify(caseBalances));
+
+            const botItems = cart.map(item => ({
+                id: item.id,
+                title: item.name,
+                price: item.price,
+                qty: item.qty,
+                img: item.img 
+            }));
+
+            const isPickup = document.getElementById('delivery-pickup').classList.contains('active');
+            let promoCodeStr = "Без промокода";
+            if (currentDiscountType === 'promo' && document.getElementById('promo-input').value) promoCodeStr = document.getElementById('promo-input').value.trim().toUpperCase();
+
+            const payload = {
+                orderId: lastOrderNumber,
+                items: botItems,
+                total: totalNum,
+                phone: checkoutPhone,
+                name: checkoutName,
+                delivery: isPickup ? 'Самовывоз' : 'Курьер',
+                address: isPickup ? '—' : 'Уточнить',
+                payment: "При получении",
+                promoCode: promoCodeStr
+            };
+
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.sendData(JSON.stringify(payload));
+                } else {
+                    alert("Заказ оформлен (тест на ПК)!");
+                }
+            } catch (e) {
+                alert("ОШИБКА ОТПРАВКИ: " + e.message);
+            }
+
+            cart = [];
+            promoDiscountPercent = 0;
+            currentDiscountType = 'none';
+            activeInvDiscount = null;
+            document.getElementById('promo-input').value = '';
+            updateCartBadge();
+            updateCart();
+            switchTab('home');
+        }
+
+        function toggleOrders() {
+            const list = document.getElementById('orders-list'); const btn = event.target;
+            if (list.classList.contains('hidden')) { list.classList.remove('hidden'); btn.innerText = '📦 Скрыть заказы'; renderOrdersList(); } 
+            else { list.classList.add('hidden'); btn.innerText = '📦 Мои заказы (Показать)'; }
+        }
+
+        function renderOrdersList() {
+            const ordersList = document.getElementById('orders-list');
+            if (userOrders.length === 0) { ordersList.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">У вас пока нет заказов</div>`; } 
+            else { ordersList.innerHTML = userOrders.map(o => `<div class="order-item"><div><div class="order-id">Заказ #${o.id}</div><div class="order-date">${o.date}</div></div><div style="text-align: right;"><div class="order-price">${o.total} ₽</div><div class="order-status">${o.status}</div></div></div>`).join(''); }
+        }
+
+        function renderProfile() {
+            let nextLevelAmount = totalSpent < 15000 ? 15000 : (totalSpent < 50000 ? 50000 : 100000);
+            let currentLevelBase = totalSpent < 15000 ? 0 : (totalSpent < 50000 ? 15000 : 50000);
+            let levelName = totalSpent < 15000 ? 'ЮНГА' : (totalSpent < 50000 ? 'БОЦМАН' : 'КАПИТАН');
+            let progress = ((totalSpent - currentLevelBase) / (nextLevelAmount - currentLevelBase)) * 100; if (progress > 100) progress = 100;
+            document.getElementById('level-name').innerText = `🏅 Уровень ${levelName}`;
+            document.getElementById('level-progress').style.width = progress + '%';
+            document.getElementById('level-spent').innerText = `Сумма: ${totalSpent.toLocaleString('ru-RU')} ₽`;
+            document.getElementById('home-rank-name').innerText = `🏅 Уровень ${levelName}`;
+            let discountText = getRankDiscountPercent() > 0 ? `${getRankDiscountPercent()}%` : '0%';
+            document.getElementById('level-discount').innerText = `Скидка ${discountText}`;
+            document.getElementById('home-rank-discount').innerText = `Скидка: ${discountText}`;
+            if (totalSpent >= 100000) document.getElementById('level-next').innerText = 'Максимальный уровень!'; else document.getElementById('level-next').innerText = `До след. уровня: +${(nextLevelAmount - totalSpent).toLocaleString('ru-RU')} ₽`;
+        }
+
+        function showAllRanks() {
+            const list = document.getElementById('ranks-list');
+            const ranks = [{ name: 'ЮНГА', sum: '0 - 15 000 ₽', disc: '0%' }, { name: 'БОЦМАН', sum: '15 000 - 50 000 ₽', disc: '5%' }, { name: 'КАПИТАН', sum: 'от 50 000 ₽', disc: '10%' }];
+            list.innerHTML = ranks.map(r => `<div class="profile-card" style="margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;"><div><div style="font-weight: bold; color: var(--accent-gold); font-size: 16px;">${r.name}</div><div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Сумма: ${r.sum}</div></div><div style="background: rgba(245, 176, 65, 0.2); color: var(--accent-gold); padding: 5px 10px; border-radius: 8px; font-weight: bold;">${r.disc}</div></div>`).join('');
+            document.getElementById('ranks-modal').classList.add('active');
+        }
+        function closeRanksModal(e) { if(e) e.preventDefault(); document.getElementById('ranks-modal').classList.remove('active'); }
+
+        function initReviews() {
+            const reviewsData = [{ user: "@captain_jack", stars: "★★★★★", text: "Оценка 5. Товар пришел быстро, упаковка отличная. Жидкость топ!", order: "#383" }, { user: "@ivan_90", stars: "★★★★★", text: "Лучший магазин в городе. Менеджер помог с выбором, все четко.", order: "#412" }, { user: "@pirate_king", stars: "★★★★☆", text: "Сундук Пирата реально топ. Выпала скидка 50 рублей!", order: "#398" }, { user: "@maria_v", stars: "★★★★★", text: "Постоянно заказываю тут. Всегда свежие жидкости, гарантия качества.", order: "#452" }, { user: "@dmitry_k", stars: "★★★★★", text: "Быстрая доставка, приятные цены. Экипаж молодцы!", order: "#501" }];
+            const track = document.getElementById('reviews-track');
+            const html = reviewsData.map(r => `<div class="review-card"><div class="review-header"><span>${r.user}</span><span class="review-stars">${r.stars}</span></div><div class="review-text">${r.text}</div><div class="review-user">Заказ ${r.order}</div></div>`).join('');
+            track.innerHTML = html + html;
+        }
+        initReviews();
+
+        const casesData = [
+            { id: 'daily', title: 'Ежедневный Сундук', desc: 'Раз в 24 часа. Маленькие скидки.', colorClass: 'free', icon: '🎁', prizes: [{ name: "Промокод 2%", chance: 39.9, rarity: 'common', type: 'percent', value: 2 }, { name: "Скидка 10 Б", chance: 40, rarity: 'common', type: 'fixed', value: 10 }, { name: "Промокод 5%", chance: 20, rarity: 'rare', type: 'percent', value: 5 }, { name: "Жидкость в подарок", chance: 0.1, rarity: 'legendary', type: 'item' }] },
+            { id: 'bronze', title: 'Сундук Юнги', desc: 'Дается за каждый купленный товар.', colorClass: '', icon: '🧰', prizes: [{ name: "Промокод 5%", chance: 40, rarity: 'common', type: 'percent', value: 5 }, { name: "Скидка 20 Б", chance: 30, rarity: 'common', type: 'fixed', value: 20 }, { name: "Скидка 30 Б", chance: 20, rarity: 'rare', type: 'fixed', value: 30 }, { name: "Промокод 10%", chance: 10, rarity: 'epic', type: 'percent', value: 10 }] },
+            { id: 'gold', title: 'Сундук Пирата', desc: 'Обменяйте 5 Сундуков Юнги. Есть шанс на жижу!', colorClass: 'gold', icon: '💰', prizes: [{ name: "Промокод 10%", chance: 40, rarity: 'common', type: 'percent', value: 10 }, { name: "Скидка 50 Б", chance: 35, rarity: 'rare', type: 'fixed', value: 50 }, { name: "Жидкость в подарок", chance: 20, rarity: 'epic', type: 'item' }, { name: "POD-система", chance: 5, rarity: 'legendary', type: 'item' }] },
+            { id: 'legendary', title: 'Сундук Капитана', desc: 'Обменяйте 10 Сундуков Юнги. Максимальные шансы!', colorClass: 'legendary', icon: '👑', prizes: [{ name: "Промокод 15%", chance: 30, rarity: 'common', type: 'percent', value: 15 }, { name: "Скидка 100 Б", chance: 40, rarity: 'rare', type: 'fixed', value: 100 }, { name: "Жидкость в подарок", chance: 20, rarity: 'epic', type: 'item' }, { name: "POD-система", chance: 10, rarity: 'legendary', type: 'item' }] }
+        ];
+        let isRollingGlobal = false;
+
+        function renderCases() {
+            const container = document.getElementById('cases-container'); const now = Date.now(); const canOpenDaily = (now - lastDailyOpen) > 24 * 60 * 60 * 1000;
+            container.innerHTML = casesData.map((c) => {
+                let balance = 0; let btnText = ''; let btnClass = 'btn-primary'; let isDisabled = false;
+                if (c.id === 'daily') { if (canOpenDaily) { btnText = 'Открыть БЕСПЛАТНО'; } else { const timeLeft = 24 * 60 * 60 * 1000 - (now - lastDailyOpen); const hours = Math.floor(timeLeft / (1000 * 60 * 60)); const mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)); btnText = `Доступен через ${hours}ч ${mins}м`; isDisabled = true; } } 
+                else {
+                    balance = caseBalances[c.id] || 0;
+                    if (balance > 0) { btnText = `Открыть (Доступно: ${balance})`; } 
+                    else {
+                        if (c.id === 'bronze') { btnText = 'Нет в наличии (нужен заказ)'; isDisabled = true; } 
+                        else if (c.id === 'gold') { let needed = 5 - caseBalances.bronze; if (needed > 0) { btnText = `🔒 Не хватает ${needed} Юнг`; isDisabled = true; } else { btnText = `🔄 Обменять 5 Юнг и Открыть`; btnClass = 'btn-outline'; } } 
+                        else if (c.id === 'legendary') { let needed = 10 - caseBalances.bronze; if (needed > 0) { btnText = `🔒 Не хватает ${needed} Юнг`; isDisabled = true; } else { btnText = `🔄 Обменять 10 Юнг и Открыть`; btnClass = 'btn-outline'; } }
+                    }
+                }
+                let trackHtml = ''; let visualPool = [];
+                c.prizes.forEach(p => { let count = p.fake ? 2 : Math.max(1, Math.floor(p.chance)); for(let i=0; i<count; i++) visualPool.push({name: p.name, fake: p.fake, rarity: p.rarity}); });
+                for(let i=0; i<50; i++) { let item = visualPool[Math.floor(Math.random() * visualPool.length)]; trackHtml += `<div class="roulette-item ${item.fake ? 'fake' : ''}" style="border-color: ${getRarityColor(item.rarity)}40">${item.name}</div>`; }
+                let chancesHtml = c.prizes.map(p => `<div class="chance-item"><div class="chance-name"><span class="rarity-dot rarity-${p.rarity}"></span><span class="${p.rarity !== 'common' ? 'text-' + p.rarity : ''}">${p.name}</span></div><span style="color: #fff; font-weight: bold;">${p.chance}%</span></div>`).join('');
+                return `
+                <div class="case-card ${c.colorClass}">
+                    <div class="case-image">${c.icon}</div>
+                    <div class="case-title">${c.title}</div>
+                    <div class="case-desc">${c.desc}</div>
+                    <div class="roulette-container"><div class="roulette-pointer"></div><div class="roulette-track" id="track-${c.id}">${trackHtml}</div></div>
+                    <button class="btn ${btnClass} ${isDisabled ? 'btn-disabled' : ''}" onclick="startRoulette('${c.id}')" id="btn-${c.id}">${btnText}</button>
+                    <div id="result-${c.id}" style="margin-top: 15px; font-weight: 900; color: var(--accent-gold); height: 20px;"></div>
+                    <div class="chances-list"><div style="font-size: 10px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Шансы выпадения:</div>${chancesHtml}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function getRarityColor(rarity) { if(rarity === 'rare') return '#3498db'; if(rarity === 'epic') return '#9b59b6'; if(rarity === 'legendary') return '#f5b041'; return '#9e9e9e'; }
+
+        function startRoulette(caseId) {
+            if (isRollingGlobal) return;
+            const caseData = casesData.find(c => c.id === caseId); const btn = document.getElementById(`btn-${caseId}`); const res = document.getElementById(`result-${caseId}`); const track = document.getElementById(`track-${caseId}`);
+            if (caseId === 'daily') { if ((Date.now() - lastDailyOpen) <= 24 * 60 * 60 * 1000) return; lastDailyOpen = Date.now(); localStorage.setItem('galleon_daily_date', lastDailyOpen); } 
+            else {
+                if (caseBalances[caseId] > 0) { caseBalances[caseId] -= 1; } 
+                else {
+                    if (caseId === 'gold' && caseBalances.bronze >= 5) { caseBalances.bronze -= 5; caseBalances.gold += 1; caseBalances.gold -= 1; showToast('5 Юнг обменяны на Пирата!'); } 
+                    else if (caseId === 'legendary' && caseBalances.bronze >= 10) { caseBalances.bronze -= 10; caseBalances.legendary += 1; caseBalances.legendary -= 1; showToast('10 Юнг обменяны на Капитана!'); } 
+                    else { return; }
+                }
+                localStorage.setItem('galleon_cases', JSON.stringify(caseBalances));
+            }
+            isRollingGlobal = true; btn.style.pointerEvents = 'none'; btn.innerText = "Крутим..."; btn.style.opacity = "0.5"; res.innerText = "";
+            track.style.transition = 'none'; track.style.transform = 'translateX(0px)'; void track.offsetWidth; 
+            const validPrizes = caseData.prizes.filter(p => p.chance > 0); const randomVal = Math.random() * 100; let cumulative = 0; let winPrize = validPrizes[0];
+            for(let p of validPrizes) { cumulative += p.chance; if(randomVal <= cumulative) { winPrize = p; break; } }
+            let targetIndex = 25;
+            for(let i=25; i<45; i++) { if(track.children[i].innerText === winPrize.name) { targetIndex = i; break; } }
+            const itemWidth = 93; const offset = (Math.random() * 40) - 20; const moveDistance = (targetIndex * itemWidth) - (window.innerWidth / 2) + (itemWidth / 2) + offset;
+            track.style.transition = 'transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)'; track.style.transform = `translateX(-${moveDistance}px)`;
+            setTimeout(() => {
+                res.innerText = `🎉 Выпало: ${winPrize.name}!`;
+                const now = new Date();
+                inventory.unshift({ name: winPrize.name, date: now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), rarity: winPrize.rarity, type: winPrize.type, value: winPrize.value });
+                localStorage.setItem('galleon_inventory', JSON.stringify(inventory));
+                if (winPrize.rarity !== 'common') { lastWonPrize = winPrize; lastWonCaseId = caseId; showWinModal(winPrize); }
+                isRollingGlobal = false;
+                setTimeout(() => { renderCases(); const freshTrack = document.getElementById(`track-${caseId}`); if(freshTrack) { freshTrack.style.transition = 'none'; freshTrack.style.transform = 'translateX(0px)'; } }, 500);
+            }, 4200); 
+        }
+
+        function createConfetti() {
+            const container = document.getElementById('confetti-container'); container.innerHTML = '';
+            const colors = ['#ff6b4a', '#f5b041', '#2ecc71', '#3498db', '#9b59b6'];
+            for (let i = 0; i < 40; i++) { const conf = document.createElement('div'); conf.classList.add('confetti'); conf.style.left = Math.random() * 100 + '%'; conf.style.top = '-10px'; conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; conf.style.animation = `fall ${Math.random() * 2 + 1.5}s linear forwards`; conf.style.animationDelay = Math.random() * 0.5 + 's'; container.appendChild(conf); }
+        }
+
+        function showWinModal(prize) {
+            const modal = document.getElementById('win-modal'); const content = document.getElementById('win-modal-content'); const prizeName = document.getElementById('win-prize-name'); const specialText = document.getElementById('win-special-text');
+            prizeName.innerText = prize.name;
+            if (prize.rarity === 'rare') { content.style.borderColor = 'var(--accent-blue)'; content.style.boxShadow = '0 0 40px rgba(52, 152, 219, 0.4)'; prizeName.style.color = 'var(--accent-blue)'; } 
+            else if (prize.rarity === 'epic') { content.style.borderColor = 'var(--accent-purple)'; content.style.boxShadow = '0 0 40px rgba(155, 89, 182, 0.4)'; prizeName.style.color = 'var(--accent-purple)'; createConfetti(); } 
+            else if (prize.rarity === 'legendary') { content.style.borderColor = 'var(--accent-gold)'; content.style.boxShadow = '0 0 40px var(--accent-gold-glow)'; prizeName.style.color = 'var(--accent-gold)'; createConfetti(); }
+            if (prize.type === 'item') { specialText.style.display = 'block'; specialText.innerText = 'Администратор свяжется с вами для получения выигрыша!'; } else { specialText.style.display = 'none'; }
+            modal.classList.add('active');
+        }
+
+        function closeWinModal(e) { if(e) e.preventDefault(); document.getElementById('win-modal').classList.remove('active'); document.getElementById('confetti-container').innerHTML = ''; }
+        function openAnotherCase() { const caseId = lastWonCaseId; document.getElementById('win-modal').classList.remove('active'); document.getElementById('confetti-container').innerHTML = ''; setTimeout(() => { startRoulette(caseId); }, 300); }
+
+        function showInventory() {
+            const list = document.getElementById('inventory-list');
+            if (inventory.length === 0) { list.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);"><div style="font-size: 40px; margin-bottom: 10px;">📦</div>Тут пока ничего нет.<br>Крутите кейсы, чтобы получить призы!</div>`; } 
+            else { list.innerHTML = inventory.map(item => `<div class="inventory-item" style="border-left-color: ${getRarityColor(item.rarity)}"><div><div style="font-weight: bold; font-size: 14px; color: ${getRarityColor(item.rarity)};">${item.name}</div><div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Выбито: ${item.date}</div></div><div class="rarity-dot rarity-${item.rarity}"></div></div>`).join(''); }
+            document.getElementById('inventory-modal').classList.add('active');
+        }
+        function closeInventory(e) { if(e) e.preventDefault(); document.getElementById('inventory-modal').classList.remove('active'); }
+
+        let slideIndex = 0; const slides = document.querySelectorAll('.slide');
+        setInterval(() => { if(slides.length === 0) return; slides[slideIndex].classList.remove('active'); slideIndex = (slideIndex + 1) % slides.length; slides[slideIndex].classList.add('active'); }, 3500);
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast'); toast.innerText = msg; toast.className = isError ? 'show error' : 'show';
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        renderCases(); renderProfile(); loadDeliveryDataToCheckout(); loadDeliveryDataToProfile();
+
+        if (document.getElementById('header-avatar')) document.getElementById('header-avatar').style.backgroundImage = `url('${window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"}')`;
+        if (document.getElementById('profile-avatar')) {
+            document.getElementById('profile-avatar').src = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80";
+            document.getElementById('profile-name-display').innerText = window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "Гость";
+            document.getElementById('profile-username-display').innerText = window.Telegram?.WebApp?.initDataUnsafe?.user?.username ? `@${window.Telegram.WebApp.initDataUnsafe.user.username}` : "Не указан";
+        }
+    </script>
+</body>
+</html>
 
         // --- 2. ПЕРЕМЕННЫЕ ---
         let cart = [];
