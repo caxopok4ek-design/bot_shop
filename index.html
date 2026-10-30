@@ -1219,21 +1219,20 @@
         }
 
         function goToCheckout() {
-            if (cart.length === 0) {
+            if (cart.length === 0) {window.Telegram || !window.Telegram.WebApp) {
+                alert("ОШИБКА: Вы открыли сайт не через Telegram!");
+                return;
+            }
+            
                 showToast('Корзина пуста!', true);
                 return;
             }
             switchTab('checkout');
         }
 
+ now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-dig    
+   
         function submitOrder() {
-            if (!window.Telegram || !window.Telegram.WebApp) {
-                alert("ОШИБКА: Вы открыли сайт не через Telegram!");
-                return;
-            }
-            
-            const tgApp = window.Telegram.WebApp;
-            
             const totalText = document.getElementById('checkout-total').innerText;
             const totalNum = parseFloat(totalText.replace(/[^0-9]/g, ''));
             
@@ -1271,7 +1270,7 @@
             caseBalances.bronze += totalItemsBought; 
             localStorage.setItem('galleon_cases', JSON.stringify(caseBalances));
 
-            // 2. ОТПРАВЛЯЕМ В БОТА (БЕЗ ДУБЛИКАТОВ ПЕРЕМЕННЫХ)
+            // 2. ОТПРАВЛЯЕМ В БОТА
             const botItems = cart.map(item => ({
                 id: item.id,
                 title: item.name,
@@ -1293,11 +1292,16 @@
                 payment: "При получении"
             };
 
+            // Пытаемся отправить в Телеграм
             try {
-                // Эта команда закроет приложение и передаст данные в app.py
-                tgApp.sendData(JSON.stringify(payload));
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.sendData(JSON.stringify(payload));
+                } else {
+                    // Если открыто на ПК, просто показываем алерт
+                    alert("Заказ оформлен (тест на ПК)!");
+                }
             } catch (e) {
-                alert("ОШИБКА ОТПРАВКИ В ТГ: " + e.message);
+                alert("ОШИБКА ОТПРАВКИ: " + e.message);
             }
 
             // 3. ОЧИЩАЕМ КОРЗИНУ
