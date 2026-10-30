@@ -1,0 +1,52 @@
+[
+  {
+    "id": 8,
+    "title": "f",
+    "desc": "g",
+    "price": 555,
+    "category": "жидкости",
+    "tag": "NEW",
+    "img": "",
+    "quantity": 5
+  },
+  {
+    "id": 7,
+    "title": "мазик",
+    "desc": "жесть",
+    "price": 500,
+    "category": "жидкость",
+    "tag": "NEW",
+    "img": "assets/prod_1077_AgACAg.jpg",
+    "quantity": 5
+  },
+  {
+    "id": 6,
+    "title": "vfp",
+    "desc": "апап",
+    "price": 500,
+    "category": "жидкость",
+    "tag": "NEW",
+    "img": "assets/prod_1051_AgACAg.jpg",
+    "quantity": 5
+  },
+  {
+    "id": 5,
+    "title": "dfgdg",
+    "desc": "sdfsrfgefgew",
+    "price": 31431431,
+    "category": "подики",
+    "tag": "ХИТ",
+    "img": "",
+    "quantity": 333
+  },
+  {
+    "id": 4,
+    "title": "g",
+    "desc": "g",
+    "price": 500,
+    "category": "жидкость",
+    "tag": "NEW",
+    "img": "assets/prod_207_AgACAg.jpg",
+    "quantity": 5
+  }
+]
