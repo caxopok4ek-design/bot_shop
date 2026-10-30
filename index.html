@@ -1220,99 +1220,30 @@
             document.getElementById('checkout-total').innerText = finalTotal + ' ₽';
         }
 
-        function goToCheckout() {
-            if (cart.length === 0) {
-                showToast('Корзина пуста!', true);
-                return;
-            }
-            switchTab('checkout');
-        }
-
         function submitOrder() {
-            const totalText = document.getElementById('checkout-total').innerText;
-            const totalNum = parseFloat(totalText.replace(/[^0-9]/g, ''));
-            
-            const checkoutName = document.getElementById('checkout-name').value.trim();
-            const checkoutPhone = document.getElementById('checkout-phone').value.trim();
-            
-            if (!checkoutName || checkoutPhone.length < 10) {
-                showToast('Пожалуйста, заполните имя и телефон полностью!', true);
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                alert("ОШИБКА: Вы открыли сайт не через Telegram!");
                 return;
             }
+            
+            const tgApp = window.Telegram.WebApp;
+            
+            // Собираем очень простой заказ, чтобы точно влез в лимиты Телеграма
+            const payload = {
+                action: "new_order",
+                total: document.getElementById('checkout-total').innerText,
+                phone: document.getElementById('checkout-phone').value,
+                items_count: cart.length
+            };
 
-            if(checkoutName) localStorage.setItem('galleon_delivery_name', checkoutName);
-            if(checkoutPhone) localStorage.setItem('galleon_delivery_phone', checkoutPhone);
-
-            lastOrderNumber++;
-            localStorage.setItem('galleon_last_order', lastOrderNumber);
-
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-            const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-
-            userOrders.unshift({
-                id: lastOrderNumber,
-                date: `${dateStr}, ${timeStr}`, 
-                total: totalNum,
-                status: 'В обработке'
-            });
-            localStorage.setItem('galleon_orders', JSON.stringify(userOrders));
-
-            totalSpent += totalNum;
-            localStorage.setItem('galleon_spent', totalSpent);
-
-            let totalItemsBought = cart.reduce((sum, item) => sum + item.qty, 0);
-            caseBalances.bronze += totalItemsBought; 
-            localStorage.setItem('galleon_cases', JSON.stringify(caseBalances));
-
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tgApp = window.Telegram.WebApp;
-                
-                // Собираем товары для бота (только здесь должно быть объявление botItems!)
-                const botItems = cart.map(item => ({
-                    id: item.id,
-                    title: item.name,
-                    price: item.price,
-                    qty: item.qty,
-                    img: item.img 
-                }));
-
-                const isPickup = document.getElementById('delivery-pickup').classList.contains('active');
-                const deliveryMethod = isPickup ? 'Самовывоз' : 'Курьер';
-                
-                let promoCodeStr = "Без промокода";
-                if (currentDiscountType === 'promo' && document.getElementById('promo-input').value) {
-                    promoCodeStr = document.getElementById('promo-input').value.trim().toUpperCase();
-                }
-
-                const payload = {
-                    orderId: lastOrderNumber,
-                    items: botItems,
-                    total: totalNum,
-                    phone: checkoutPhone,
-                    delivery: deliveryMethod,
-                    address: isPickup ? '—' : 'Уточнить по телефону',
-                    payment: "При получении",
-                    promoCode: promoCodeStr
-                };
-
-                try {
-                    tgApp.sendData(JSON.stringify(payload));
-                } catch (e) {
-                    alert("Ошибка Telegram: " + e.message);
-                }
-            } else {
-                alert(`Спасибо за заказ #${lastOrderNumber}!`);
+            alert("Отправляем в ТГ: " + JSON.stringify(payload));
+            
+            try {
+                // Отправляем
+                tgApp.sendData(JSON.stringify(payload));
+            } catch (e) {
+                alert("ОШИБКА ОТПРАВКИ: " + e.message);
             }
-
-            cart = [];
-            promoDiscountPercent = 0;
-            currentDiscountType = 'none';
-            activeInvDiscount = null;
-            document.getElementById('promo-input').value = '';
-            updateCartBadge();
-            updateCart();
-            switchTab('home');
         }
         // --- 9. ПРОФИЛЬ И РАНГИ ---
         function toggleOrders() {
