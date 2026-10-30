@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GALLEON UK</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #121212; --surface: #1e1e1e; --surface-light: #2c2c2c;
+            --text: #ffffff; --text-muted: #9e9e9e;
+            --primary: #ff6b4a; --primary-glow: rgba(255, 107, 74, 0.4);
+            --gold: #f5b041; --green: #2ecc71;
+            --radius: 16px; --radius-sm: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+        .flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+
+        /* ЭКРАН 18+ */
+        #age-gate { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+        .logo-circle { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #ff9a76, #ff4b2b); display: flex; align-items: center; justify-content: center; font-size: 50px; margin-bottom: 20px; box-shadow: 0 0 30px var(--primary-glow); border: 3px solid #ffd8cc; }
+        .btn { width: 100%; padding: 16px; border-radius: var(--radius); border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: linear-gradient(90deg, #ff4b2b, #ff6b4a); color: #fff; box-shadow: 0 0 20px var(--primary-glow); }
+        .btn-outline { background: transparent; border: 1px solid var(--surface-light); color: var(--text); }
+
+        /* ПРИЛОЖЕНИЕ */
+        #app { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; background: var(--bg); z-index: 10; }
+        .header h1 { font-size: 20px; font-weight: 900; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .header img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--primary); }
+
+        .content { flex: 1; overflow-y: auto; padding: 15px 15px 100px 15px; }
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ТОВАРЫ */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--surface); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.05); }
+        .card-img { width: 100%; height: 140px; border-radius: var(--radius-sm); background: #111; display: flex; align-items: center; justify-content: center; font-size: 50px; margin-bottom: 10px; }
+        .card-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+        .card-price { font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 10px; }
+        .btn-add { width: 100%; padding: 10px; border-radius: 8px; background: var(--surface-light); color: var(--text); border: none; font-weight: bold; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .btn-add:active { background: var(--primary); }
+
+        /* КОРЗИНА */
+        .cart-item { display: flex; gap: 15px; background: var(--surface); padding: 15px; border-radius: var(--radius); margin-bottom: 10px; align-items: center; }
+        .cart-img { width: 60px; height: 60px; background: #111; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        .qty-btn { background: #333; color: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+
+        /* ОФОРМЛЕНИЕ */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+        .input-group input { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 14px 15px; border-radius: var(--radius-sm); font-size: 15px; outline: none; }
+        .input-group input:focus { border-color: var(--primary); }
+
+        /* НИЖНЕЕ МЕНЮ */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(18, 18, 18, 0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 90; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; gap: 4px; cursor: pointer; width: 25%; position: relative; }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 22px; }
+        .badge { position: absolute; top: -5px; right: 25%; background: var(--primary); color: #fff; font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <!-- Экран 18+ -->
+    <div id="age-gate">
+        <div class="logo-circle">⚓</div>
+        <h1 style="font-size: 24px; font-weight: 900; margin-bottom: 10px;">GALLEON UK</h1>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Вам есть 18 лет?</p>
+        <button class="btn btn-primary" onclick="verifyAge(true)">Да, мне есть 18 лет</button>
+        <button class="btn btn-outline" onclick="verifyAge(false)">Нет, мне меньше 18</button>
+    </div>
+
+    <!-- Приложение -->
+    <div id="app" class="hidden">
+        <div class="header">
+            <h1><span>⚓</span> GALLEON</h1>
+            <img id="header-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="User">
+        </div>
+
+        <div class="content">
+            <!-- Главная -->
+            <div id="screen-home" class="screen active">
+                <h2 style="margin-bottom: 15px; font-size: 20px;">🔥 Хиты продаж</h2>
+                <div class="grid" id="home-products"></div>
+            </div>
+
+            <!-- Корзина -->
+            <div id="screen-cart" class="screen">
+                <h2 style="margin-bottom: 15px; font-size: 20px;">Корзина</h2>
+                <div id="cart-list"></div>
+                <div style="display: flex; justify-content: space-between; margin: 20px 0; font-size: 20px; font-weight: bold;">
+                    <span>Итого:</span>
+                    <span id="cart-total" style="color: var(--primary);">0 ₽</span>
+                </div>
+                <button class="btn btn-primary" onclick="goToCheckout()">Оформить заказ</button>
+            </div>
+
+            <!-- Оформление -->
+            <div id="screen-checkout" class="screen">
+                <h2 style="margin-bottom: 15px; font-size: 20px;">Оформление заказа</h2>
+                <div class="input-group">
+                    <label>Ваше имя</label>
+                    <input type="text" id="checkout-name" placeholder="Иван">
+                </div>
+                <div class="input-group">
+                    <label>Телефон</label>
+                    <input type="tel" id="checkout-phone" placeholder="+7 (___) ___-__-__" oninput="formatPhone(this)">
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 20px 0; font-size: 20px; font-weight: bold;">
+                    <span>К оплате:</span>
+                    <span id="checkout-total" style="color: var(--primary);">0 ₽</span>
+                </div>
+                <button class="btn btn-primary" onclick="submitOrder()">Подтвердить заказ</button>
+            </div>
+
+            <!-- Профиль -->
+            <div id="screen-profile" class="screen">
+                <div style="background: var(--surface); padding: 20px; border-radius: var(--radius); text-align: center;">
+                    <img id="profile-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px;">
+                    <h2 id="profile-name" style="font-size: 22px; margin-bottom: 5px;">Пират</h2>
+                    <p id="profile-username" style="color: var(--primary); font-size: 14px;">@Galleon_User</p>
+                </div>
+            </div>
+
+            <!-- Успех -->
+            <div id="screen-success" class="screen" style="text-align: center; margin-top: 50px;">
+                <div style="font-size: 80px; margin-bottom: 20px;">✅</div>
+                <h2 style="font-size: 24px; margin-bottom: 10px;">Заказ оформлен!</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Ожидайте связи менеджера.</p>
+            </div>
+        </div>
+
+        <!-- Меню -->
+        <div class="bottom-nav" id="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home', this)">
+                <span class="nav-icon">🏠</span>Главная
+            </div>
+            <div class="nav-item" onclick="switchTab('cart', this)">
+                <span class="nav-icon">🛒</span>Корзина
+                <div class="badge hidden" id="cart-badge">0</div>
+            </div>
+            <div class="nav-item" onclick="switchTab('profile', this)">
+                <span class="nav-icon">👤</span>Профиль
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Инициализация Telegram
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                document.getElementById('header-avatar').src = user.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+                document.getElementById('profile-avatar').src = user.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+                document.getElementById('profile-name').innerText = user.first_name;
+                document.getElementById('profile-username').innerText = user.username ? `@${user.username}` : 'Скрыт';
+                document.getElementById('checkout-name').value = user.first_name; // Автозаполнение
+            }
+        }
+
+        // 2. Экран 18+
+        function verifyAge(isAdult) {
+            if (isAdult) {
+                document.getElementById('age-gate').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                localStorage.setItem('galleon_age', 'true');
+            } else {
+                window.location.href = "https://www.google.com";
+            }
+        }
+        if (localStorage.getItem('galleon_age') === 'true') {
+            document.getElementById('age-gate').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+        }
+
+        // 3. Ввод телефона
+        function formatPhone(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (!val) { input.value = ''; return; }
+            if (val[0] === '8') val = '7' + val.slice(1);
+            if (val[0] !== '7') val = '7' + val;
+            let res = '+7';
+            if (val.length > 1) res += ' (' + val.slice(1, 4);
+            if (val.length >= 4) res += ') ' + val.slice(4, 7);
+            if (val.length >= 7) res += '-' + val.slice(7, 9);
+            if (val.length >= 9) res += '-' + val.slice(9, 11);
+            input.value = res;
+        }
+
+        // 4. Данные
+        let cart = [];
+        const products = [
+            { id: 1, name: "Жидкость BJORN", price: 500, img: "🦇" },
+            { id: 2, name: "POD SYSTEM X", price: 1500, img: "💨" },
+            { id: 3, name: "Одноразка LUSH", price: 800, img: "📱" },
+            { id: 4, name: "Испаритель 0.6", price: 300, img: "⚙️" }
+        ];
+
+        // 5. Навигация
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            if(tabId === 'cart') renderCart();
+            if(tabId === 'checkout') updateCheckoutTotal();
+            if(tabId === 'home') document.getElementById('bottom-nav').classList.remove('hidden');
+            if(tabId === 'success') document.getElementById('bottom-nav').classList.add('hidden');
+        }
+
+        // 6. Рендер товаров
+        function renderProducts() {
+            const html = products.map(p => `
+                <div class="card">
+                    <div class="card-img">${p.img}</div>
+                    <div class="card-title">${p.name}</div>
+                    <div class="card-price">${p.price} ₽</div>
+                    <button class="btn-add" onclick="addToCart(${p.id})">В корзину</button>
+                </div>
+            `).join('');
+            document.getElementById('home-products').innerHTML = html;
+        }
+        renderProducts();
+
+        // 7. Корзина
+        function addToCart(id) {
+            const p = products.find(x => x.id === id);
+            const exist = cart.find(x => x.id === id);
+            if (exist) exist.qty++;
+            else cart.push({ ...p, qty: 1 });
+            
+            updateBadge();
+            if(tg) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function updateBadge() {
+            const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+            const badge = document.getElementById('cart-badge');
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            if (cart.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Корзина пуста</p>';
+                document.getElementById('cart-total').innerText = '0 ₽';
+                return;
+            }
+            let total = 0;
+            list.innerHTML = cart.map((item, index) => {
+                total += item.price * item.qty;
+                return `
+                <div class="cart-item">
+                    <div class="cart-img">${item.img}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${item.name}</div>
+                        <div style="color: var(--primary); font-weight: 900;">${item.price} ₽</div>
+                    </div>
+                    <div class="flex items-center" style="gap: 10px;">
+                        <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+                        <span style="font-weight: bold;">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('cart-total').innerText = total + ' ₽';
+        }
+
+        function changeQty(index, delta) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) cart.splice(index, 1);
+            updateBadge();
+            renderCart();
+        }
+
+        // 8. Оформление
+        function goToCheckout() {
+            if (cart.length === 0) return alert('Корзина пуста!');
+            switchTab('checkout', document.querySelectorAll('.nav-item')[1]); // visually switch
+            document.getElementById('bottom-nav').classList.add('hidden'); // hide nav on checkout
+        }
+
+        function updateCheckoutTotal() {
+            let total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('checkout-total').innerText = total + ' ₽';
+        }
+
+        // 9. ОТПРАВКА В БОТА
+        function submitOrder() {
+            const name = document.getElementById('checkout-name').value.trim();
+            const phone = document.getElementById('checkout-phone').value.trim();
+            
+            if (!name || phone.length < 10) {
+                return alert('Заполните имя и телефон полностью!');
+            }
+
+            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            const orderId = Math.floor(100000 + Math.random() * 900000);
+
+            // Формируем данные для app.py
+            const payload = {
+                orderId: orderId,
+                items: cart.map(i => ({ id: i.id, title: i.name, price: i.price, qty: i.qty, img: i.img })),
+                total: total,
+                name: name,
+                phone: phone
+            };
+
+            if (tg) {
+                // Отправляем данные и закрываем
+                tg.sendData(JSON.stringify(payload));
+            } else {
+                // Тест на ПК
+                console.log("Тестовый заказ:", payload);
+                alert("Заказ оформлен (Тест на ПК)");
+            }
+
+            // Очищаем корзину
+            cart = [];
+            updateBadge();
+            switchTab('success');
+        }
+    </script>
+</body>
+</html>
