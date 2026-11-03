@@ -1,5 +1,15 @@
 [
   {
+    "id": 14,
+    "title": "control",
+    "desc": "lutu",
+    "price": 100,
+    "category": "-",
+    "tag": "NEW",
+    "img": "",
+    "quantity": 40
+  },
+  {
     "id": 13,
     "title": "proverka",
     "desc": "new",
