@@ -219,35 +219,24 @@
         }
 
         // 6. РЕНДЕР ТОВАРОВ (С ЗАЩИТОЙ ОТ КЭША)
-                async function loadProducts() {
-            // Пробуем все возможные пути, где может лежать файл
-            const paths = [
-                './products.json', 
-                './webapp/products.json', 
-                'products.json', 
-                'webapp/products.json',
-                '/bot_shop/products.json',
-                '/bot_shop/webapp/products.json'
-            ];
-            
-            let success = false;
-
-            for (const path of paths) {
-                try {
-                    // Добавляем ?t= чтобы обойти кэш
-                    const response = await fetch(`${path}?t=${Date.now()}`);
-                    if (response.ok) {
-                        products = await response.json();
-                        renderProducts();
-                        success = true;
-                        console.log(`✅ Товары успешно загружены из: ${path}`);
-                        break; // Если нашли, выходим из цикла
-                    }
-                } catch (e) {
-                    // Если не нашли, просто идем дальше
+                        async function loadProducts() {
+            try {
+                // ЖЕСТКИЙ АБСОЛЮТНЫЙ ПУТЬ. Теперь ошибки быть не может.
+                const url = `https://caxopok4ek-design.github.io/bot_shop/products.json?t=${Date.now()}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка: ${response.status}`);
                 }
+                
+                products = await response.json();
+                renderProducts();
+            } catch (e) {
+                console.error("Ошибка загрузки:", e);
+                // Выводим точную причину ошибки на экран
+                document.getElementById('home-products').innerHTML = `<p style="color: #e74c3c; grid-column: 1/-1; text-align: center;">Ошибка: ${e.message}</p>`;
             }
-            
+        }
             // Если ни один путь не сработал
             if (!success) {
                 document.getElementById('home-products').innerHTML = '<p style="color: #e74c3c; grid-column: 1/-1; text-align: center;">Товары не найдены.<br>Проверьте файл products.json на GitHub.</p>';
