@@ -219,50 +219,40 @@
         }
 
         // 6. РЕНДЕР ТОВАРОВ (С ЗАЩИТОЙ ОТ КЭША)
-        async function loadProducts() {
-            try {
-                // МАГИЯ ЗДЕСЬ: добавляем ?t=время, чтобы обойти кэш
-                const response = await fetch(`./products.json?t=${Date.now()}`);
-                if (!response.ok) throw new Error('Файл не найден');
-                
-                products = await response.json();
-                renderProducts();
-            } catch (e) {
-                console.error("Ошибка загрузки товаров:", e);
-                document.getElementById('home-products').innerHTML = '<p style="color: #e74c3c; grid-column: 1/-1; text-align: center;">Ошибка загрузки товаров</p>';
-            }
-        }
+                async function loadProducts() {
+            // Пробуем все возможные пути, где может лежать файл
+            const paths = [
+                './products.json', 
+                './webapp/products.json', 
+                'products.json', 
+                'webapp/products.json',
+                '/bot_shop/products.json',
+                '/bot_shop/webapp/products.json'
+            ];
+            
+            let success = false;
 
-        function renderProducts() {
-            const container = document.getElementById('home-products');
-            if (products.length === 0) {
-                container.innerHTML = '<p style="color: #888; text-align: center; grid-column: 1/-1;">Товаров пока нет</p>';
-                return;
-            }
-
-            const html = products.map(p => {
-                // Обработка картинок (ссылка или эмодзи)
-                let imgHtml = '';
-                if (p.img && p.img.startsWith('assets/')) {
-                    imgHtml = `<img src="./${p.img}" alt="${p.title}">`;
-                } else if (p.img) {
-                    imgHtml = p.img; // Если это эмодзи
-                } else {
-                    imgHtml = '📦';
+            for (const path of paths) {
+                try {
+                    // Добавляем ?t= чтобы обойти кэш
+                    const response = await fetch(`${path}?t=${Date.now()}`);
+                    if (response.ok) {
+                        products = await response.json();
+                        renderProducts();
+                        success = true;
+                        console.log(`✅ Товары успешно загружены из: ${path}`);
+                        break; // Если нашли, выходим из цикла
+                    }
+                } catch (e) {
+                    // Если не нашли, просто идем дальше
                 }
-
-                return `
-                <div class="card">
-                    <div class="card-img">${imgHtml}</div>
-                    <div class="card-title">${p.title}</div>
-                    <div class="card-price">${p.price} ₽</div>
-                    <button class="btn-add" onclick="addToCart(${p.id})">В корзину</button>
-                </div>
-                `;
-            }).join('');
-            container.innerHTML = html;
+            }
+            
+            // Если ни один путь не сработал
+            if (!success) {
+                document.getElementById('home-products').innerHTML = '<p style="color: #e74c3c; grid-column: 1/-1; text-align: center;">Товары не найдены.<br>Проверьте файл products.json на GitHub.</p>';
+            }
         }
-
         // 7. КОРЗИНА
         function addToCart(id) {
             const p = products.find(x => x.id === id);
