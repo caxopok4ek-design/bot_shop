@@ -3,148 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ГАЛЕОН УК</title>
+    <title>GALLEON UK</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-        :root { --bg-color: #0d0f14; --card-bg: #1a1d26; --primary: #e63946; --text-main: #ffffff; --text-muted: #8b8e99; --border-color: #2b2f3d; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-color); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; justify-content: center; }
-        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; background-color: var(--bg-color); display: flex; flex-direction: column; }
-        #age-gate { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
-        #age-gate h1 { font-size: 28px; margin-bottom: 10px; color: var(--primary); }
-        #age-gate p { color: var(--text-muted); margin-bottom: 30px; }
-        .btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; transition: 0.3s; }
-        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
-        header { padding: 20px; text-align: center; font-size: 20px; font-weight: 700; letter-spacing: 2px; border-bottom: 1px solid var(--border-color); }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Montserrat:wght@400;600;700&display=swap');
+
+        :root {
+            --bg: #09090b;
+            --surface: #121216;
+            --surface-light: #1c1c24;
+            --primary: #00ffff; /* Неоновый голубой */
+            --primary-glow: rgba(0, 255, 255, 0.4);
+            --secondary: #ff00ff; /* Неоновый розовый */
+            --secondary-glow: rgba(255, 0, 255, 0.3);
+            --text: #ffffff;
+            --text-muted: #888891;
+            --border: #272732;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 255, 255, 0.05) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+        }
+
+        #app {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- ЭКРАН 18+ --- */
+        #age-gate {
+            position: absolute; inset: 0; background: var(--bg); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 30px; text-align: center;
+        }
+        .logo-anchor { font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--primary)); }
+        #age-gate h1 { font-family: 'Cinzel', serif; font-size: 32px; color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); margin-bottom: 10px; letter-spacing: 2px; }
+        #age-gate p { color: var(--text-muted); margin-bottom: 40px; font-size: 14px; }
+        
+        .btn-main {
+            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--primary);
+            background: transparent; color: var(--primary); font-size: 16px; font-weight: 700; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 0 15px inset var(--primary-glow), 0 0 15px var(--primary-glow);
+            transition: 0.3s;
+        }
+        .btn-main:active { transform: scale(0.95); background: rgba(0, 255, 255, 0.1); }
+        
+        .btn-outline {
+            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--border);
+            background: transparent; color: var(--text-muted); font-size: 14px; 
+            cursor: pointer; margin-top: 15px; transition: 0.3s;
+        }
+        .btn-outline:active { background: var(--surface); }
+
+        /* --- ИНТЕРФЕЙС --- */
+        header {
+            padding: 20px; text-align: center; font-family: 'Cinzel', serif;
+            font-size: 24px; font-weight: 900; letter-spacing: 3px;
+            color: #fff; text-shadow: 0 0 10px var(--primary-glow);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        header span { color: var(--primary); }
+
         main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; }
         .page { display: none; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); }
-        .card h3 { font-size: 16px; margin-bottom: 8px; }
-        .card p { font-size: 13px; color: var(--text-muted); }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .product { background: var(--card-bg); border-radius: 16px; padding: 10px; border: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .product-img { width: 100%; height: 140px; background: #2a2e3d; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 40px; overflow: hidden;}
-        .product-img img { width: 100%; height: 100%; object-fit: cover; }
-        .product-title { font-size: 14px; font-weight: 600; margin-bottom: 5px; flex: 1; }
-        .product-price { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
-        .add-to-cart { background: rgba(230, 57, 70, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; font-size: 12px; cursor: pointer; }
-        .case { background: linear-gradient(145deg, var(--card-bg), #12141a); text-align: center; position: relative; overflow: hidden; }
-        .case-img { font-size: 60px; margin: 15px 0; }
-        .case-tag { position: absolute; top: 15px; left: 15px; background: var(--primary); padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
-        #roulette-container { overflow: hidden; width: 100%; height: 80px; background: #000; margin-bottom: 15px; border-radius: 10px; position: relative; display: none; }
+
+        /* --- ТОВАРЫ --- */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { 
+            background: var(--surface); border-radius: 16px; padding: 12px; 
+            border: 1px solid var(--border); display: flex; flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s;
+        }
+        .card:active { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        .card-img { 
+            width: 100%; height: 130px; border-radius: 10px; background: #000; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 40px; margin-bottom: 10px; overflow: hidden; border: 1px solid var(--border);
+        }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .card-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+        .card-price { font-size: 16px; font-weight: 900; color: var(--primary); margin-bottom: 10px; }
+        .btn-add { 
+            width: 100%; padding: 10px; border-radius: 8px; 
+            background: transparent; color: var(--text); border: 1px solid var(--border); 
+            font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-add:active { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary-glow); border-color: var(--primary); }
+
+        /* --- КЕЙСЫ (Главная) --- */
+        .case-banner {
+            background: linear-gradient(145deg, var(--surface), #0d0d12);
+            border: 1px solid var(--secondary); border-radius: 16px;
+            padding: 20px; text-align: center; margin-bottom: 15px;
+            box-shadow: 0 0 20px var(--secondary-glow); position: relative; overflow: hidden;
+        }
+        .case-tag {
+            position: absolute; top: 15px; left: 15px; background: var(--secondary);
+            color: #fff; font-size: 10px; font-weight: 900; padding: 4px 10px;
+            border-radius: 10px; box-shadow: 0 0 10px var(--secondary-glow);
+        }
+        .case-img { font-size: 50px; margin: 10px 0; filter: drop-shadow(0 0 10px var(--secondary-glow)); }
+        .case-title { font-family: 'Cinzel', serif; font-size: 18px; color: var(--secondary); text-shadow: 0 0 5px var(--secondary-glow); margin-bottom: 5px; }
+        .case-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 15px; }
+        
+        /* Рулетка */
+        #roulette-container { overflow: hidden; width: 100%; height: 70px; background: #000; margin-bottom: 15px; border-radius: 10px; position: relative; display: none; border: 1px solid var(--border); }
         #roulette { display: flex; height: 100%; align-items: center; transition: transform 3s cubic-bezier(0.1, 0.7, 0.1, 1); position: absolute; left: 50%; }
-        .roulette-item { min-width: 70px; height: 70px; background: var(--card-bg); border: 1px solid var(--border-color); margin: 0 5px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-        .pointer { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: var(--primary); transform: translateX(-50%); z-index: 2; box-shadow: 0 0 10px var(--primary); }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
-        .cart-total { margin-top: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; }
-        .input-group { margin-bottom: 15px; position: relative; z-index: 100; }
-        .input-group label { display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted); }
-        .input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: #000; color: #fff; outline: none; font-family: 'Montserrat'; font-size: 16px; pointer-events: auto; user-select: text; -webkit-user-select: text; cursor: text; }
-        .input-group input:focus { border-color: var(--primary); }
+        .roulette-item { min-width: 70px; height: 60px; background: var(--surface); border: 1px solid var(--border); margin: 0 5px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .pointer { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: var(--secondary); transform: translateX(-50%); z-index: 2; box-shadow: 0 0 10px var(--secondary); }
+
+        /* --- КОРЗИНА --- */
+        .cart-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; background: var(--surface); border-radius: 12px; 
+            margin-bottom: 10px; border: 1px solid var(--border);
+        }
+        .cart-total { margin-top: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; font-family: 'Cinzel', serif; }
+        
+        /* --- ОФОРМЛЕНИЕ --- */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .input-group input { 
+            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border); 
+            background: var(--bg); color: #fff; outline: none; font-family: 'Montserrat'; font-size: 16px;
+            transition: 0.3s;
+        }
+        .input-group input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+        
         .delivery-btns { display: flex; gap: 10px; margin-bottom: 15px; }
-        .delivery-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: 12px; text-align: center; }
-        .delivery-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(230,57,70,0.1); }
-        .avatar { width: 80px; height: 80px; background: #2a2e3d; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; overflow: hidden; border: 2px solid var(--primary); }
+        .delivery-btn { 
+            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); 
+            background: transparent; color: var(--text-muted); cursor: pointer; 
+            font-weight: 600; font-size: 12px; transition: 0.3s; text-transform: uppercase;
+        }
+        .delivery-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 255, 0.05); box-shadow: 0 0 10px var(--primary-glow); }
+
+        /* --- ПРОФИЛЬ --- */
+        .avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; border: 2px solid var(--primary); box-shadow: 0 0 15px var(--primary-glow); overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .history-item { background: #2a2e3d; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--primary); }
-        nav { position: absolute; bottom: 0; left: 0; width: 100%; background: #14161c; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 10;}
-        .nav-item { color: var(--text-muted); font-size: 11px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .history-item { background: var(--surface-light); padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid var(--primary); }
+
+        /* --- НИЖНЕЕ МЕНЮ --- */
+        nav {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid var(--border); z-index: 10;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .nav-item { 
+            display: flex; flex-direction: column; align-items: center; 
+            color: var(--text-muted); font-size: 10px; cursor: pointer; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+        }
         .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
-        .nav-item.active { color: var(--primary); }
-        .cart-badge { position: absolute; top: -5px; right: -5px; background: var(--primary); color: white; font-size: 10px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
+        
+        .cart-badge { 
+            position: absolute; top: -5px; right: -8px; background: var(--secondary); 
+            color: white; font-size: 10px; font-weight: 900; width: 18px; height: 18px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 0 10px var(--secondary-glow); 
+        }
         .nav-icon-wrap { position: relative; display: inline-block; }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="app-container">
+    <div id="app">
+        <!-- ЭКРАН 18+ -->
         <div id="age-gate">
-            <h1>ГАЛЕОН УК</h1>
-            <p>Вам есть 18 лет?</p>
-            <button class="btn" onclick="checkAge(true)">Да, мне есть 18</button>
-            <button class="btn btn-outline" onclick="checkAge(false)">Нет</button>
+            <div class="logo-anchor">⚓</div>
+            <h1>GALLEON UK</h1>
+            <p>Подтвердите свой возраст, чтобы войти в бухту.</p>
+            <button class="btn-main" onclick="checkAge(true)">Мне есть 18 лет</button>
+            <button class="btn-outline" onclick="checkAge(false)">Мне меньше 18</button>
         </div>
 
+        <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
         <div id="main-app" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
-            <header>ГАЛЕОН УК</header>
+            
+            <header><span>⚓</span> GALLEON <span>UK</span></header>
 
             <main>
+                <!-- ГЛАВНАЯ -->
                 <div id="page-home" class="page active">
-                    <div class="card">
-                        <h3>Бонусная система</h3>
-                        <p>Приведи друга (+100 баллов)<br>Оплачивай до 15% бонусами</p>
+                    <h3 style="margin-bottom: 15px; font-family: 'Cinzel', serif; color: var(--primary);">Сокровищница</h3>
+                    
+                    <div id="roulette-container">
+                        <div class="pointer"></div>
+                        <div id="roulette"></div>
                     </div>
-                    <h3 style="margin-bottom: 10px;">Кейсы</h3>
-                    <div id="roulette-container"><div class="pointer"></div><div id="roulette"></div></div>
-                    <div class="card case" id="case-daily">
-                        <div class="case-tag">Бесплатно</div><div class="case-img">🎁</div><h3>Кейс Ежедневный</h3><p>Выпадают бонусы и промокоды</p>
-                        <button class="btn" style="margin-top: 15px;" onclick="openCase('daily')">Открыть</button>
+
+                    <div class="case-banner">
+                        <div class="case-tag">Free</div>
+                        <div class="case-img">🎁</div>
+                        <div class="case-title">Ежедневный Сундук</div>
+                        <div class="case-desc">Испытай удачу раз в 24 часа</div>
+                        <button class="btn-main" style="padding: 12px; font-size: 14px;" onclick="openCase('daily')">Открыть</button>
                     </div>
-                    <div class="card case">
-                        <div class="case-tag">499 Б</div><div class="case-img">🥇</div><h3>Кейс Золото</h3><p>Самый дорогой дроп в линейке</p>
-                        <button class="btn" style="margin-top: 15px;" onclick="openCase('gold')">Открыть</button>
+
+                    <div class="case-banner" style="border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow);">
+                        <div class="case-tag" style="background: var(--primary); color: #000;">499 Б</div>
+                        <div class="case-img">👑</div>
+                        <div class="case-title" style="color: var(--primary); text-shadow: 0 0 5px var(--primary-glow);">Сундук Капитана</div>
+                        <div class="case-desc">Максимальный шанс на редкий дроп</div>
+                        <button class="btn-main" style="padding: 12px; font-size: 14px;" onclick="openCase('gold')">Открыть</button>
                     </div>
                 </div>
 
+                <!-- КАТАЛОГ -->
                 <div id="page-catalog" class="page">
-                    <div class="product-grid" id="catalog-products">
-                        <p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">Загрузка товаров...</p>
+                    <div class="grid" id="catalog-products">
+                        <p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">Загрузка трюма...</p>
                     </div>
                 </div>
 
+                <!-- КОРЗИНА -->
                 <div id="page-cart" class="page">
-                    <h3 style="margin-bottom: 15px;">Корзина</h3>
-                    <div id="cart-list"><p style="color: var(--text-muted); text-align: center; margin-top: 50px;" id="empty-cart-msg">Корзина пуста</p></div>
-                    <div id="checkout-form" class="hidden" style="margin-top: 20px; background: var(--card-bg); padding: 15px; border-radius: 16px; border: 1px solid var(--border-color);">
-                        <h3 style="margin-bottom: 15px; font-size: 16px;">Оформление заказа</h3>
-                        <div class="input-group"><label>Ваше имя</label><input type="text" id="checkout-name" placeholder="Иван"></div>
-                        <div class="input-group"><label>Телефон</label><input type="tel" id="checkout-phone" placeholder="+7 (999) 000-00-00" oninput="formatPhone(this)"></div>
-                        <label style="display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted);">Способ получения:</label>
+                    <h3 style="margin-bottom: 15px; font-family: 'Cinzel', serif; color: var(--primary);">Трюм</h3>
+                    
+                    <div id="cart-list">
+                        <p style="color: var(--text-muted); text-align: center; margin-top: 50px;" id="empty-cart-msg">Трюм пуст</p>
+                    </div>
+                    
+                    <div id="checkout-form" class="hidden" style="margin-top: 20px; background: var(--surface); padding: 15px; border-radius: 16px; border: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 15px; font-family: 'Cinzel', serif; color: var(--primary);">Оформление</h3>
+                        
+                        <div class="input-group">
+                            <label>Имя</label>
+                            <input type="text" id="checkout-name" placeholder="Иван">
+                        </div>
+                        <div class="input-group">
+                            <label>Телефон</label>
+                            <input type="tel" id="checkout-phone" placeholder="+7 (999) 000-00-00" oninput="formatPhone(this)">
+                        </div>
+
+                        <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted); text-transform: uppercase;">Способ:</label>
                         <div class="delivery-btns">
                             <button type="button" id="btn-pickup" class="delivery-btn active" onclick="selectDelivery('pickup')">Самовывоз</button>
                             <button type="button" id="btn-meeting" class="delivery-btn" onclick="selectDelivery('meeting')">Встреча</button>
                         </div>
+
                         <div class="input-group hidden" id="address-group">
-                            <label>Желаемое место встречи</label>
+                            <label>Место встречи</label>
                             <input type="text" id="checkout-address" placeholder="Например: м. Парк Победы">
-                            <p style="font-size: 10px; color: var(--text-muted); margin-top: 5px;">Администратор свяжется с вами для уточнения деталей и стоимости, если это далеко.</p>
                         </div>
-                        <button class="btn" style="margin-top: 10px; padding: 12px; font-size: 14px;" onclick="submitOrder()">Подтвердить заказ</button>
+
+                        <button class="btn-main" style="margin-top: 10px;" onclick="submitOrder()">Подтвердить</button>
                     </div>
-                    <div class="cart-total hidden" id="cart-total-block"><span>Итого:</span><span id="cart-total-price">0 ₽</span></div>
-                    <button class="btn hidden" id="checkout-btn" style="margin-top: 20px;" onclick="showCheckoutForm()">Оформить заказ</button>
+
+                    <div class="cart-total hidden" id="cart-total-block">
+                        <span>Итого:</span>
+                        <span id="cart-total-price" style="color: var(--primary); text-shadow: 0 0 10px var(--primary-glow);">0 ₽</span>
+                    </div>
+                    
+                    <button class="btn-main hidden" id="checkout-btn" style="margin-top: 20px;" onclick="showCheckoutForm()">Оформить</button>
                 </div>
 
+                <!-- ПРОФИЛЬ -->
                 <div id="page-profile" class="page">
-                    <div class="card" style="text-align: center;">
+                    <div class="card" style="text-align: center; margin-bottom: 20px;">
                         <div id="profile-avatar" class="avatar">👤</div>
-                        <h3 id="profile-name">Пользователь</h3>
-                        <p id="profile-username" style="margin-top: 5px; color: var(--primary);">@username</p>
+                        <h3 id="profile-name" style="font-family: 'Cinzel', serif; color: var(--primary);">Пират</h3>
+                        <p id="profile-username" style="margin-top: 5px; color: var(--text-muted);">@username</p>
                     </div>
-                    <div class="card">
-                        <h3>История заказов</h3>
-                        <div id="profile-history" style="margin-top: 10px;"><p style="color: var(--text-muted); font-size: 13px;">У вас пока нет заказов</p></div>
+                    
+                    <h3 style="margin-bottom: 10px; font-family: 'Cinzel', serif; color: var(--primary);">Бортовой журнал</h3>
+                    <div id="profile-history">
+                        <p style="color: var(--text-muted); font-size: 13px;">Записей нет</p>
                     </div>
                 </div>
             </main>
 
+            <!-- НИЖНЕЕ МЕНЮ -->
             <nav>
-                <div class="nav-item active" onclick="switchTab('home', this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Главная</div>
-                <div class="nav-item" onclick="switchTab('catalog', this)"><svg viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>Каталог</div>
-                <div class="nav-item" onclick="switchTab('cart', this)"><div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span id="cart-badge" class="cart-badge hidden">0</span></div>Корзина</div>
-                <div class="nav-item" onclick="switchTab('profile', this)"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Профиль</div>
+                <div class="nav-item active" onclick="switchTab('home', this)">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    Главная
+                </div>
+                <div class="nav-item" onclick="switchTab('catalog', this)">
+                    <svg viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
+                    Каталог
+                </div>
+                <div class="nav-item" onclick="switchTab('cart', this)">
+                    <div class="nav-icon-wrap">
+                        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                        <span id="cart-badge" class="cart-badge hidden">0</span>
+                    </div>
+                    Трюм
+                </div>
+                <div class="nav-item" onclick="switchTab('profile', this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    Профиль
+                </div>
             </nav>
         </div>
     </div>
 
     <script>
+        // --- 1. ИНИЦИАЛИЗАЦИЯ ТЕЛЕГРАМ (НЕ ТРОГАЕМ) ---
         const tg = window.Telegram?.WebApp;
         if (tg) {
-            tg.ready(); tg.expand();
+            tg.ready();
+            tg.expand();
             const user = tg.initDataUnsafe?.user;
             if (user) {
                 document.getElementById('profile-name').innerText = user.first_name;
@@ -154,19 +342,25 @@
             }
         }
 
+        // --- 2. ЭКРАН 18+ ---
         function checkAge(isAdult) {
             if (isAdult) {
                 document.getElementById('age-gate').style.display = 'none';
                 document.getElementById('main-app').classList.remove('hidden');
                 localStorage.setItem('galleon_age', 'true');
-            } else window.location.href = "https://google.com";
+            } else {
+                window.location.href = "https://google.com";
+            }
         }
         if (localStorage.getItem('galleon_age') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
             document.getElementById('main-app').classList.remove('hidden');
         }
 
-        let products = [], cart = [], currentDelivery = 'Самовывоз';
+        // --- 3. ЗАГРУЗКА ТОВАРОВ (НЕ ТРОГАЕМ) ---
+        let products = [];
+        let cart = [];
+        let currentDelivery = 'Самовывоз';
         let orderHistory = JSON.parse(localStorage.getItem('galleon_order_history')) || [];
 
         async function loadProducts() {
@@ -176,7 +370,7 @@
                 products = await res.json();
                 renderProducts();
             } catch (e) {
-                document.getElementById('catalog-products').innerHTML = `<p style="color:red; grid-column:1/-1; text-align:center;">Ошибка загрузки</p>`;
+                document.getElementById('catalog-products').innerHTML = `<p style="color:red; grid-column:1/-1; text-align:center;">Товары не найдены</p>`;
             }
         }
 
@@ -184,15 +378,16 @@
             document.getElementById('catalog-products').innerHTML = products.map(p => {
                 let img = p.img && p.img.startsWith('assets/') ? `<img src="${p.img}">` : (p.img || '📦');
                 return `
-                <div class="product">
-                    <div class="product-img">${img}</div>
-                    <div class="product-title">${p.title}</div>
-                    <div class="product-price">${p.price} ₽</div>
-                    <button class="add-to-cart" onclick="addToCart(${p.id})">В корзину</button>
+                <div class="card">
+                    <div class="card-img">${img}</div>
+                    <div class="card-title">${p.title}</div>
+                    <div class="card-price">${p.price} ₽</div>
+                    <button class="btn-add" onclick="addToCart(${p.id})">В трюм</button>
                 </div>`;
             }).join('');
         }
 
+        // --- 4. НАВИГАЦИЯ ---
         function switchTab(tabId, navElement) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -201,6 +396,7 @@
             if (tabId === 'profile') renderHistory();
         }
 
+        // --- 5. КОРЗИНА ---
         function addToCart(id) {
             const p = products.find(x => x.id === id);
             const exist = cart.find(x => x.id === id);
@@ -239,8 +435,8 @@
                     cartList.innerHTML += `
                         <div class="cart-item">
                             <div>
-                                <div style="font-weight: 600;">${item.title} <span style="color:var(--primary); font-size:12px;">x${item.qty}</span></div>
-                                <div style="color: var(--primary); font-size: 14px;">${item.price} ₽</div>
+                                <div style="font-weight: 600; font-size: 14px;">${item.title} <span style="color:var(--primary); font-size:12px;">x${item.qty}</span></div>
+                                <div style="color: var(--primary); font-size: 14px; font-weight: 900;">${item.price} ₽</div>
                             </div>
                             <button onclick="removeFromCart(${index})" style="background:none; border:none; color: var(--text-muted); font-size: 20px;">✕</button>
                         </div>`;
@@ -251,6 +447,7 @@
 
         function removeFromCart(index) { cart.splice(index, 1); updateCartUI(); }
 
+        // --- 6. ОФОРМЛЕНИЕ (НЕ ТРОГАЕМ) ---
         function selectDelivery(type) {
             currentDelivery = type === 'pickup' ? 'Самовывоз' : 'Встреча';
             document.getElementById('btn-pickup').classList.remove('active');
@@ -299,42 +496,47 @@
             const payload = { orderId, items: cart.map(i => ({ id: i.id, title: i.title, price: i.price, qty: i.qty, img: i.img })), total, name, phone, delivery: currentDelivery, address: currentDelivery === 'Встреча' ? address : '—' };
 
             if (tg) tg.sendData(JSON.stringify(payload));
-            else alert("Тест на ПК!");
+            else alert("Тестовый заказ!");
 
             cart = [];
             updateCartUI();
             switchTab('home', document.querySelectorAll('.nav-item')[0]);
         }
 
+        // --- 7. ПРОФИЛЬ ---
         function renderHistory() {
             const container = document.getElementById('profile-history');
             if (orderHistory.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">У вас пока нет заказов</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">Записей нет</p>';
                 return;
             }
             container.innerHTML = orderHistory.map(o => `
                 <div class="history-item">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="font-weight: bold; font-size: 13px;">Заказ #${o.id}</span>
-                        <span style="color: var(--primary); font-weight: bold; font-size: 13px;">${o.total} ₽</span>
+                        <span style="font-weight: bold; font-size: 13px; color: var(--primary);">Заказ #${o.id}</span>
+                        <span style="color: #fff; font-weight: bold; font-size: 13px;">${o.total} ₽</span>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">${o.date}</div>
                     <div style="font-size: 12px;">${o.items.join(', ')}</div>
-                    <div style="font-size: 11px; color: #f1c40f; margin-top: 5px;">Статус: ${o.status}</div>
+                    <div style="font-size: 11px; color: var(--secondary); margin-top: 5px;">Статус: ${o.status}</div>
                 </div>`).join('');
         }
 
+        // --- 8. КЕЙСЫ (АНИМАЦИЯ) ---
         function openCase(type) {
             const container = document.getElementById('roulette-container');
             const roulette = document.getElementById('roulette');
             const btn = event.target;
-            btn.disabled = true; btn.textContent = "Открываем...";
+            btn.disabled = true; btn.textContent = "Крутим...";
             container.style.display = 'block'; roulette.style.transition = 'none'; roulette.style.transform = 'translateX(0)'; roulette.innerHTML = '';
+            
             for(let i=0; i<30; i++) {
                 let isWin = i === 25;
                 let text = isWin ? (type === 'daily' ? "50 Б" : "1000 Б") : "Бонусы";
-                roulette.innerHTML += `<div class="roulette-item" style="border: ${isWin ? "2px solid var(--primary)" : "1px solid var(--border-color)"}">${text}</div>`;
+                let color = isWin ? "var(--secondary)" : "var(--border)";
+                roulette.innerHTML += `<div class="roulette-item" style="border: 1px solid ${color}">${text}</div>`;
             }
+            
             setTimeout(() => {
                 roulette.style.transition = 'transform 3s cubic-bezier(0.1, 0.7, 0.1, 1)';
                 roulette.style.transform = `translateX(-${(25 * 80) - (container.offsetWidth / 2) + 35}px)`;
@@ -347,6 +549,7 @@
             }, 100);
         }
 
+        // Запуск
         loadProducts();
     </script>
 </body>
