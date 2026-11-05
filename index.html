@@ -376,7 +376,7 @@
 
         function renderProducts() {
             document.getElementById('catalog-products').innerHTML = products.map(p => {
-                let img = p.img && p.img.startsWith('assets/') ? `<img src="${p.img}">` : (p.img || '📦');
+                let img = p.img && p.img.startsWith('assets/') ? `<img src="https://caxopok4ek-design.github.io/bot_shop/${p.img}">` : (p.img || '📦');
                 return `
                 <div class="card">
                     <div class="card-img">${img}</div>
