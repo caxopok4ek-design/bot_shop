@@ -1,5 +1,15 @@
 [
   {
+    "id": 16,
+    "title": "lox",
+    "desc": "nice",
+    "price": 599,
+    "category": "жижа",
+    "tag": "NEW",
+    "img": "assets/prod_1406_AgACAg.jpg",
+    "quantity": 3
+  },
+  {
     "id": 15,
     "title": "три",
     "desc": "",
