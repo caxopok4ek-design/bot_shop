@@ -151,4 +151,183 @@ if (rawData) {
 function sendToBot(command, data = {}) {
     if (!tg) return alert("Работает только в Telegram");
     const payload = { action: "admin_panel", password: ADMIN_PASSWORD, command, ...data };
-    try { tg.sendData(JSON.stringify(payload)); } catch(e) { alert("Ошибка: " +
+    try { tg.sendData(JSON.stringify(payload)); } catch(e) { alert("Ошибка: " + e.message); }
+}
+
+const $ = (s,el=document) => el.querySelector(s);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => n.toLocaleString('ru-RU') + ' ₽';
+const fmtStatus = s => ({new:'Новый',confirmed:'В работе',completed:'Выполнен',cancelled:'Отменён'}[s] || s);
+const statusColor = s => ({new:'var(--red)',confirmed:'var(--yellow)',completed:'var(--green)',cancelled:'var(--gray)'}[s]);
+
+function newOrdersCount(){ return state.orders.filter(o=>o.status==='new').length; }
+function activeOrdersCount(){ return state.orders.filter(o=>o.status==='new'||o.status==='confirmed').length; }
+function getStatusBreakdown(){ return { new: state.orders.filter(o=>o.status==='new').length, confirmed: state.orders.filter(o=>o.status==='confirmed').length, completed: state.orders.filter(o=>o.status==='completed').length, cancelled: state.orders.filter(o=>o.status==='cancelled').length }; }
+
+const tabs = [
+  {id:'home', ico:'🏠', label:'Главная'},
+  {id:'orders', ico:'📦', label:'Заказы'},
+  {id:'products', ico:'🛒', label:'Товары'},
+  {id:'stats', ico:'📊', label:'Стата'},
+];
+
+function renderNav(){
+  const nav = $('#nav');
+  const newCnt = newOrdersCount();
+  nav.innerHTML = tabs.map(t=>`
+    <button class="nav-item ${state.currentTab===t.id?'active':''}" onclick="goTab('${t.id}')">
+      <span class="ico">${t.ico}</span>
+      <span>${t.label}</span>
+      ${t.id==='orders' && newCnt>0 ? '<span class="dot"></span>' : ''}
+    </button>
+  `).join('');
+}
+
+function goTab(id){ state.currentTab = id; state.screen = id; state.screenData = null; render(); }
+function goScreen(screen, data=null){ state.screen = screen; state.screenData = data; render(); }
+function goBack(){ goTab(state.currentTab); }
+
+function render(){
+  renderNav();
+  const el = $('#screen');
+  const s = state.screen;
+  if(s==='home') el.innerHTML = renderHome();
+  else if(s==='orders') el.innerHTML = renderOrders();
+  else if(s==='order') el.innerHTML = renderOrder(state.screenData);
+  else if(s==='products') el.innerHTML = renderProducts();
+  else if(s==='stats') el.innerHTML = renderStats();
+  window.scrollTo(0,0);
+  el.scrollTop = 0;
+}
+
+function renderHome(){
+  const newO = state.orders.filter(o=>o.status==='new');
+  return `
+    <div class="header"><div class="brand">⚓ GALLEON <span>ADMIN</span></div><div class="right"><div class="avatar">A</div></div></div>
+    <div class="content">
+      <div class="tiles">
+        <div class="tile"><div class="lbl">Новые</div><div class="val">${newO.length}</div></div>
+        <div class="tile"><div class="lbl">В работе</div><div class="val">${activeOrdersCount()}</div></div>
+        <div class="tile wide"><div class="lbl">Выручка</div><div class="val">${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div></div>
+      </div>
+      <div class="section-title">Новые заказы</div>
+      ${newO.length ? newO.map(o=>`
+        <div class="card clickable" onclick="openOrder(${o.id})">
+          <div class="order-top"><span class="order-num">#${o.id}</span><span class="order-num" style="font-weight:500;color:var(--muted)">${escapeHtml(o.name)}</span></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;"><span class="order-phone">${o.phone}</span><span style="font-weight:800;">${money(o.total)}</span></div>
+        </div>
+      `).join('') : `<div class="empty"><div class="ico">✨</div>Новых заказов нет</div>`}
+    </div>
+  `;
+}
+
+function renderOrders(){
+  let filtered = state.orders.filter(o=>o.status===state.ordersTab);
+  const cnt = { new: state.orders.filter(o=>o.status==='new').length, confirmed: state.orders.filter(o=>o.status==='confirmed').length, completed: state.orders.filter(o=>o.status==='completed').length };
+  return `
+    <div class="header"><div class="title">Заказы</div></div>
+    <div class="content">
+      <div class="tabs">
+        <button class="tab ${state.ordersTab==='new'?'active':''}" onclick="setOrdersTab('new')">Новые${cnt.new?`<span class="cnt">${cnt.new}</span>`:''}</button>
+        <button class="tab ${state.ordersTab==='confirmed'?'active':''}" onclick="setOrdersTab('confirmed')">В работе${cnt.confirmed?`<span class="cnt">${cnt.confirmed}</span>`:''}</button>
+        <button class="tab ${state.ordersTab==='completed'?'active':''}" onclick="setOrdersTab('completed')">Выполнено</button>
+      </div>
+      ${filtered.length ? filtered.map(o=>`
+        <div class="card clickable" onclick="openOrder(${o.id})">
+          <div class="order-top"><span class="status-dot ${o.status}"></span><span class="order-num">#${o.id}</span><span class="status-txt ${o.status}">${fmtStatus(o.status)}</span></div>
+          <div class="order-name" style="margin-top:8px;">${escapeHtml(o.name)}</div>
+          <div class="order-meta" style="margin-top:8px;"><span class="price">${money(o.total)}</span></div>
+        </div>
+      `).join('') : `<div class="empty"><div class="ico">📭</div>Нет заказов</div>`}
+    </div>
+  `;
+}
+function setOrdersTab(t){ state.ordersTab = t; render(); }
+function openOrder(id){ goScreen('order', id); }
+
+function renderOrder(id){
+  const o = state.orders.find(x=>x.id===id);
+  if(!o) return `<div class="content"><div class="empty">Заказ не найден</div></div>`;
+  return `
+    <div class="header"><button class="back" onclick="goBack()">←</button><div class="title">Заказ #${o.id}</div></div>
+    <div class="content">
+      <div class="status-banner" style="margin-bottom:14px;">
+        <span class="status-dot ${o.status}"></span><span class="st" style="color:${statusColor(o.status)}">${fmtStatus(o.status)}</span>
+        <div class="actions">
+          ${o.status==='new' ? `<button class="btn btn-primary btn-sm" onclick="changeBotStatus(${o.id}, 'confirmed')">Принять</button><button class="btn btn-danger btn-sm" onclick="changeBotStatus(${o.id}, 'cancelled')">Отменить</button>` : o.status==='confirmed' ? `<button class="btn btn-success btn-sm" onclick="changeBotStatus(${o.id}, 'completed')">Выполнен</button>` : ''}
+        </div>
+      </div>
+      <div class="card">
+        <div class="kv"><span class="k">👤</span><span class="v">${escapeHtml(o.name)}</span></div>
+        <div class="kv"><span class="k">📞</span><span class="v">${o.phone}</span></div>
+        <div class="kv"><span class="k">💰</span><span class="v">Итого: <b>${money(o.total)}</b></span></div>
+      </div>
+    </div>
+  `;
+}
+
+function changeBotStatus(orderId, status) {
+    sendToBot("change_status", { order_id: orderId, status: status });
+    const o = state.orders.find(x=>x.id===orderId);
+    if(o) o.status = status;
+    render();
+}
+
+let productFilter = 'Все';
+function renderProducts(){
+  const cats = ['Все', ...new Set(state.products.map(p => p.cat))];
+  const filtered = state.products.filter(p=>productFilter==='Все' || p.cat===productFilter);
+  return `
+    <div class="header"><div class="title">Товары</div><div class="right"><button class="btn-add" onclick="tg.close(); tg.sendData(JSON.stringify({action:'go_to_bot_add'}))">+ Добавить</button></div></div>
+    <div class="content">
+      <div class="tabs">${cats.map(c=>`<button class="tab ${productFilter===c?'active':''}" onclick="setProductFilter('${c}')">${c}</button>`).join('')}</div>
+      ${filtered.map(p=>`
+        <div class="card clickable" onclick="deleteProduct(${p.id})">
+          <div class="product-row">
+            <div class="product-img">📦</div>
+            <div class="product-info">
+              <div class="product-name">${escapeHtml(p.name)}</div>
+              <div class="product-meta">${money(p.price)} · ${p.cat} · ${p.stock} шт</div>
+            </div>
+            <div style="color:var(--red); font-size:20px;">🗑</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function setProductFilter(f){ productFilter=f; render(); }
+function deleteProduct(id) {
+    if(confirm("Удалить этот товар?")) {
+        sendToBot("delete_product", { id: id });
+    }
+}
+
+function renderStats(){
+  const bd = getStatusBreakdown();
+  const maxBd = Math.max(bd.new, bd.confirmed, bd.completed, bd.cancelled, 1);
+  const barColors = {new:'var(--red)', confirmed:'var(--yellow)', completed:'var(--green)', cancelled:'var(--gray)'};
+  return `
+    <div class="header"><div class="title">Статистика</div></div>
+    <div class="content">
+      <div class="tiles">
+        <div class="tile"><div class="lbl">Всего заказов</div><div class="val">${state.orders.length}</div></div>
+        <div class="tile"><div class="lbl">Выручка</div><div class="val">${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div></div>
+      </div>
+      <div class="section-title">Заказы по статусам</div>
+      <div class="card">
+        <div class="chart">
+          ${['new','confirmed','completed','cancelled'].map(k=>`
+            <div class="bar" style="height:${(bd[k]/maxBd)*100}%; background:${barColors[k]}"><div class="val">${bd[k]}</div></div>
+          `).join('')}
+        </div>
+        <div class="chart-labels"><span>Новые</span><span>В работе</span><span>Вып.</span><span>Отменено</span></div>
+      </div>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
