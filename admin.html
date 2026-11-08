@@ -6,115 +6,12 @@
 <title>GALLEON Admin</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root{
-    --bg:#0a0a0c; --surface:#16161a; --surface2:#1f1f24; --surface3:#26262d;
-    --border:#2a2a30; --text:#f5f5f7; --muted:#8a8a94; --muted2:#5a5a64;
-    --accent:#ff8c68; --accent-dim:rgba(255,140,104,0.2);
-    --green:#4ade80; --yellow:#f5c542; --red:#ff3b5c; --gray:#6b6b76;
-    --radius:14px;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;height:100%;}
-  body{
-    background:#050506;
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
-    color:var(--text);
-    display:flex; justify-content:center;
-    min-height:100vh;
-  }
-  #app{
-    width:100%; max-width:430px; min-height:100vh;
-    background:var(--bg);
-    display:flex; flex-direction:column;
-    position:relative;
-    box-shadow:0 0 40px rgba(0,0,0,.6);
-  }
-  .header{
-    position:sticky; top:0; z-index:50;
-    background:rgba(10,10,12,.92);
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    padding:14px 16px;
-    display:flex; align-items:center; gap:12px;
-    border-bottom:1px solid var(--border);
-    min-height:56px;
-  }
-  .header .back{background:none; border:none; color:var(--text); font-size:20px; padding:4px 8px 4px 0; cursor:pointer;}
-  .header .title{font-size:17px; font-weight:700; flex:1;}
-  .header .brand{font-size:15px; font-weight:800; letter-spacing:.5px; flex:1;}
-  .header .brand span{color:var(--accent);}
-  .header .right{display:flex; align-items:center; gap:10px;}
-  .avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#ff8c68,#ff5e3a); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#000;}
-  .icon-btn{background:var(--surface2); border:none; color:var(--text); width:36px; height:36px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px;}
-  .btn-add{background:var(--accent); color:#000; border:none; padding:8px 14px; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer;}
-  .content{flex:1; padding:16px; padding-bottom:96px; overflow-y:auto;}
-  .nav{position:fixed; bottom:0; left:0; right:0; max-width:430px; margin:0 auto; background:rgba(16,16,20,.96); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--border); display:flex; padding:8px 0 calc(8px + env(safe-area-inset-bottom)); z-index:60;}
-  .nav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; color:var(--muted2); font-size:10px; font-weight:600; cursor:pointer; padding:4px; position:relative;}
-  .nav-item .ico{font-size:20px; line-height:1;}
-  .nav-item.active{color:var(--accent);}
-  .nav-item .dot{position:absolute; top:2px; right:calc(50% - 16px); width:8px; height:8px; border-radius:50%; background:var(--accent); border:2px solid var(--bg);}
-  .card{background:var(--surface); border-radius:var(--radius); padding:14px; border:1px solid var(--border);}
-  .card + .card{margin-top:10px;}
-  .card.clickable{cursor:pointer; transition:background .15s;}
-  .card.clickable:active{background:var(--surface2);}
-  .tiles{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .tile{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px;}
-  .tile .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600;}
-  .tile .val{font-size:26px; font-weight:800; margin:6px 0 2px; letter-spacing:-.5px;}
-  .tile .sub{font-size:11px; color:var(--muted); display:flex; align-items:center; gap:4px;}
-  .tile .warn{color:var(--accent);}
-  .tile.wide{grid-column:span 2;}
-  .section-title{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; font-weight:700; margin:22px 0 10px;}
-  .section-title:first-child{margin-top:0;}
-  .order-top{display:flex; align-items:center; gap:8px; font-size:12px;}
-  .order-num{font-weight:700; color:var(--text);}
-  .status-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
-  .status-dot.new{background:var(--red); box-shadow:0 0 8px var(--red);}
-  .status-dot.confirmed{background:var(--yellow);}
-  .status-dot.completed{background:var(--green);}
-  .status-dot.cancelled{background:var(--gray);}
-  .status-txt{font-weight:600;}
-  .status-txt.new{color:var(--red);}
-  .status-txt.confirmed{color:var(--yellow);}
-  .status-txt.completed{color:var(--green);}
-  .status-txt.cancelled{color:var(--gray);}
-  .order-time{margin-left:auto; color:var(--muted); font-size:11px;}
-  .order-name{font-size:15px; font-weight:600;}
-  .order-phone{font-size:13px; color:var(--muted);}
-  .order-meta{font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap;}
-  .order-meta .price{color:var(--text); font-weight:700;}
-  .tabs{display:flex; gap:8px; overflow-x:auto; padding:4px 0; margin-bottom:14px; scrollbar-width:none;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab{background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:all .15s;}
-  .tab.active{background:var(--accent); border-color:var(--accent); color:#000;}
-  .tab .cnt{background:rgba(0,0,0,.1); padding:1px 6px; border-radius:8px; font-size:11px; margin-left:4px;}
-  .btn{border:none; border-radius:12px; padding:13px 18px; font-weight:700; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
-  .btn-primary{background:var(--accent); color:#000;}
-  .btn-danger{background:var(--accent-dim); color:var(--red); border:1px solid var(--red);}
-  .btn-success{background:var(--green); color:#000;}
-  .btn-block{width:100%;}
-  .btn-sm{padding:8px 12px; font-size:12px; border-radius:10px;}
-  .product-row{display:flex; gap:12px; align-items:center;}
-  .product-img{width:52px; height:52px; border-radius:10px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; border:1px solid var(--border);}
-  .product-info{flex:1; min-width:0;}
-  .product-name{font-weight:600; font-size:14px; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .product-meta{font-size:12px; color:var(--muted);}
-  .chart{height:80px; display:flex; align-items:flex-end; gap:6px; padding:8px 0;}
-  .chart .bar{flex:1; border-radius:4px 4px 0 0; min-height:6px; transition:opacity .15s; cursor:pointer; position:relative;}
-  .chart .bar .val{position:absolute; top:-18px; left:0; right:0; text-align:center; font-size:11px; font-weight:700; color:var(--muted);}
-  .chart-labels{display:flex; gap:6px; margin-top:6px; font-size:10px;}
-  .chart-labels span{flex:1; text-align:center; color:var(--muted);}
-  .muted{color:var(--muted);}
-  .empty{text-align:center; padding:60px 20px; color:var(--muted); font-size:14px;}
-  .empty .ico{font-size:42px; margin-bottom:12px; opacity:.5;}
-  .status-banner{display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; background:var(--surface); border:1px solid var(--border);}
-  .status-banner .st{font-weight:700; font-size:14px;}
-  .status-banner .actions{margin-left:auto; display:flex; gap:8px;}
+/* ... (ВСТАВЬ СЮДА ВСЕ СТИЛИ ИЗ ПРЕДЫДУЩЕГО СООБЩЕНИЯ) ... */
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="screen"></div>
+  <div id="screen"><div style="padding:50px; text-align:center;">Загрузка данных...</div></div>
   <nav class="nav" id="nav"></nav>
 </div>
 
@@ -124,9 +21,6 @@ const tg = window.Telegram?.WebApp;
 
 if (tg) { tg.ready(); tg.expand(); }
 
-// Читаем данные из URL (которые прислал бот)
-const urlParams = new URLSearchParams(window.location.search);
-let rawData = urlParams.get('data');
 let state = {
   currentTab: 'home',
   screen: 'home',
@@ -136,195 +30,24 @@ let state = {
   products: []
 };
 
-if (rawData) {
+// ЗАПРОС ДАННЫХ У БОТА ПРИ ЗАГРУЗКЕ
+if (tg) {
+    tg.sendData(JSON.stringify({ action: "admin_panel", command: "get_data" }));
+} else {
+    document.getElementById('screen').innerHTML = '<div class="empty">Откройте через Telegram!</div>';
+}
+
+// Эта функция ловит ответ от бота (в Telegram WebApp нет прямого события для этого, 
+// поэтому мы используем хак через location.hash, если бот передает данные)
+window.addEventListener('message', function(event) {
     try {
-        const parsed = JSON.parse(decodeURIComponent(rawData));
-        state.orders = parsed.orders || [];
-        state.products = parsed.products || [];
-    } catch(e) { console.error("Ошибка парсинга данных", e); }
-}
+        let data = JSON.parse(event.data);
+        if (data.orders) {
+            state.orders = data.orders;
+            state.products = data.products;
+            render(); // Перерисовываем экран с новыми данными
+        }
+    } catch(e) {}
+});
 
-function sendToBot(command, data = {}) {
-    if (!tg) return alert("Работает только в Telegram");
-    const payload = { action: "admin_panel", password: ADMIN_PASSWORD, command, ...data };
-    try { tg.sendData(JSON.stringify(payload)); } catch(e) { alert("Ошибка: " + e.message); }
-}
-
-const $ = (s,el=document) => el.querySelector(s);
-const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money = n => n.toLocaleString('ru-RU') + ' ₽';
-const fmtStatus = s => ({new:'Новый',confirmed:'В работе',completed:'Выполнен',cancelled:'Отменён'}[s] || s);
-const statusColor = s => ({new:'var(--red)',confirmed:'var(--yellow)',completed:'var(--green)',cancelled:'var(--gray)'}[s]);
-
-function newOrdersCount(){ return state.orders.filter(o=>o.status==='new').length; }
-function activeOrdersCount(){ return state.orders.filter(o=>o.status==='new'||o.status==='confirmed').length; }
-function getStatusBreakdown(){ return { new: state.orders.filter(o=>o.status==='new').length, confirmed: state.orders.filter(o=>o.status==='confirmed').length, completed: state.orders.filter(o=>o.status==='completed').length, cancelled: state.orders.filter(o=>o.status==='cancelled').length }; }
-
-const tabs = [
-  {id:'home', ico:'🏠', label:'Главная'},
-  {id:'orders', ico:'📦', label:'Заказы'},
-  {id:'products', ico:'🛒', label:'Товары'},
-  {id:'stats', ico:'📊', label:'Стата'},
-];
-
-function renderNav(){
-  const nav = $('#nav');
-  const newCnt = newOrdersCount();
-  nav.innerHTML = tabs.map(t=>`
-    <button class="nav-item ${state.currentTab===t.id?'active':''}" onclick="goTab('${t.id}')">
-      <span class="ico">${t.ico}</span>
-      <span>${t.label}</span>
-      ${t.id==='orders' && newCnt>0 ? '<span class="dot"></span>' : ''}
-    </button>
-  `).join('');
-}
-
-function goTab(id){ state.currentTab = id; state.screen = id; state.screenData = null; render(); }
-function goScreen(screen, data=null){ state.screen = screen; state.screenData = data; render(); }
-function goBack(){ goTab(state.currentTab); }
-
-function render(){
-  renderNav();
-  const el = $('#screen');
-  const s = state.screen;
-  if(s==='home') el.innerHTML = renderHome();
-  else if(s==='orders') el.innerHTML = renderOrders();
-  else if(s==='order') el.innerHTML = renderOrder(state.screenData);
-  else if(s==='products') el.innerHTML = renderProducts();
-  else if(s==='stats') el.innerHTML = renderStats();
-  window.scrollTo(0,0);
-  el.scrollTop = 0;
-}
-
-function renderHome(){
-  const newO = state.orders.filter(o=>o.status==='new');
-  return `
-    <div class="header"><div class="brand">⚓ GALLEON <span>ADMIN</span></div><div class="right"><div class="avatar">A</div></div></div>
-    <div class="content">
-      <div class="tiles">
-        <div class="tile"><div class="lbl">Новые</div><div class="val">${newO.length}</div></div>
-        <div class="tile"><div class="lbl">В работе</div><div class="val">${activeOrdersCount()}</div></div>
-        <div class="tile wide"><div class="lbl">Выручка</div><div class="val">${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div></div>
-      </div>
-      <div class="section-title">Новые заказы</div>
-      ${newO.length ? newO.map(o=>`
-        <div class="card clickable" onclick="openOrder(${o.id})">
-          <div class="order-top"><span class="order-num">#${o.id}</span><span class="order-num" style="font-weight:500;color:var(--muted)">${escapeHtml(o.name)}</span></div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;"><span class="order-phone">${o.phone}</span><span style="font-weight:800;">${money(o.total)}</span></div>
-        </div>
-      `).join('') : `<div class="empty"><div class="ico">✨</div>Новых заказов нет</div>`}
-    </div>
-  `;
-}
-
-function renderOrders(){
-  let filtered = state.orders.filter(o=>o.status===state.ordersTab);
-  const cnt = { new: state.orders.filter(o=>o.status==='new').length, confirmed: state.orders.filter(o=>o.status==='confirmed').length, completed: state.orders.filter(o=>o.status==='completed').length };
-  return `
-    <div class="header"><div class="title">Заказы</div></div>
-    <div class="content">
-      <div class="tabs">
-        <button class="tab ${state.ordersTab==='new'?'active':''}" onclick="setOrdersTab('new')">Новые${cnt.new?`<span class="cnt">${cnt.new}</span>`:''}</button>
-        <button class="tab ${state.ordersTab==='confirmed'?'active':''}" onclick="setOrdersTab('confirmed')">В работе${cnt.confirmed?`<span class="cnt">${cnt.confirmed}</span>`:''}</button>
-        <button class="tab ${state.ordersTab==='completed'?'active':''}" onclick="setOrdersTab('completed')">Выполнено</button>
-      </div>
-      ${filtered.length ? filtered.map(o=>`
-        <div class="card clickable" onclick="openOrder(${o.id})">
-          <div class="order-top"><span class="status-dot ${o.status}"></span><span class="order-num">#${o.id}</span><span class="status-txt ${o.status}">${fmtStatus(o.status)}</span></div>
-          <div class="order-name" style="margin-top:8px;">${escapeHtml(o.name)}</div>
-          <div class="order-meta" style="margin-top:8px;"><span class="price">${money(o.total)}</span></div>
-        </div>
-      `).join('') : `<div class="empty"><div class="ico">📭</div>Нет заказов</div>`}
-    </div>
-  `;
-}
-function setOrdersTab(t){ state.ordersTab = t; render(); }
-function openOrder(id){ goScreen('order', id); }
-
-function renderOrder(id){
-  const o = state.orders.find(x=>x.id===id);
-  if(!o) return `<div class="content"><div class="empty">Заказ не найден</div></div>`;
-  return `
-    <div class="header"><button class="back" onclick="goBack()">←</button><div class="title">Заказ #${o.id}</div></div>
-    <div class="content">
-      <div class="status-banner" style="margin-bottom:14px;">
-        <span class="status-dot ${o.status}"></span><span class="st" style="color:${statusColor(o.status)}">${fmtStatus(o.status)}</span>
-        <div class="actions">
-          ${o.status==='new' ? `<button class="btn btn-primary btn-sm" onclick="changeBotStatus(${o.id}, 'confirmed')">Принять</button><button class="btn btn-danger btn-sm" onclick="changeBotStatus(${o.id}, 'cancelled')">Отменить</button>` : o.status==='confirmed' ? `<button class="btn btn-success btn-sm" onclick="changeBotStatus(${o.id}, 'completed')">Выполнен</button>` : ''}
-        </div>
-      </div>
-      <div class="card">
-        <div class="kv"><span class="k">👤</span><span class="v">${escapeHtml(o.name)}</span></div>
-        <div class="kv"><span class="k">📞</span><span class="v">${o.phone}</span></div>
-        <div class="kv"><span class="k">💰</span><span class="v">Итого: <b>${money(o.total)}</b></span></div>
-      </div>
-    </div>
-  `;
-}
-
-function changeBotStatus(orderId, status) {
-    sendToBot("change_status", { order_id: orderId, status: status });
-    const o = state.orders.find(x=>x.id===orderId);
-    if(o) o.status = status;
-    render();
-}
-
-function renderProducts(){
-  const cats = ['Все', ...new Set(state.products.map(p => p.cat))];
-  const filtered = state.products.filter(p=>productFilter==='Все' || p.cat===productFilter);
-  return `
-    <div class="header"><div class="title">Товары</div><div class="right"><button class="btn-add" onclick="tg.close(); tg.sendData(JSON.stringify({action:'go_to_bot_add'}))">+ Добавить</button></div></div>
-    <div class="content">
-      <div class="tabs">${cats.map(c=>`<button class="tab ${productFilter===c?'active':''}" onclick="setProductFilter('${c}')">${c}</button>`).join('')}</div>
-      ${filtered.map(p=>`
-        <div class="card clickable" onclick="deleteProduct(${p.id})">
-          <div class="product-row">
-            <div class="product-img">📦</div>
-            <div class="product-info">
-              <div class="product-name">${escapeHtml(p.name)}</div>
-              <div class="product-meta">${money(p.price)} · ${p.cat} · ${p.stock} шт</div>
-            </div>
-            <div style="color:var(--red); font-size:20px;">🗑</div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-let productFilter = 'Все';
-function setProductFilter(f){ productFilter=f; render(); }
-
-function deleteProduct(id) {
-    if(confirm("Удалить этот товар?")) {
-        sendToBot("delete_product", { id: id });
-    }
-}
-
-function renderStats(){
-  const bd = getStatusBreakdown();
-  const maxBd = Math.max(bd.new, bd.confirmed, bd.completed, bd.cancelled, 1);
-  const barColors = {new:'var(--red)', confirmed:'var(--yellow)', completed:'var(--green)', cancelled:'var(--gray)'};
-  return `
-    <div class="header"><div class="title">Статистика</div></div>
-    <div class="content">
-      <div class="tiles">
-        <div class="tile"><div class="lbl">Всего заказов</div><div class="val">${state.orders.length}</div></div>
-        <div class="tile"><div class="lbl">Выручка</div><div class="val">${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div></div>
-      </div>
-      <div class="section-title">Заказы по статусам</div>
-      <div class="card">
-        <div class="chart">
-          ${['new','confirmed','completed','cancelled'].map(k=>`
-            <div class="bar" style="height:${(bd[k]/maxBd)*100}%; background:${barColors[k]}"><div class="val">${bd[k]}</div></div>
-          `).join('')}
-        </div>
-        <div class="chart-labels"><span>Новые</span><span>В работе</span><span>Вып.</span><span>Отменено</span></div>
-      </div>
-    </div>
-  `;
-}
-
-render();
-</script>
-</body>
-</html>
+// ... (ОСТАЛЬНОЙ JS КОД БЕЗ ИЗМЕНЕНИЙ) ...
