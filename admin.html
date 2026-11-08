@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Smoky Admin — прототип</title>
+<title>GALLEON Admin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
     --bg:#0a0a0c; --surface:#16161a; --surface2:#1f1f24; --surface3:#26262d;
     --border:#2a2a30; --text:#f5f5f7; --muted:#8a8a94; --muted2:#5a5a64;
-    --accent:#ff3b5c; --accent-dim:#ff3b5c33;
-    --green:#33d17a; --yellow:#f5c542; --red:#ff3b5c; --gray:#6b6b76;
+    --accent:#ff8c68; --accent-dim:rgba(255,140,104,0.2);
+    --green:#4ade80; --yellow:#f5c542; --red:#ff3b5c; --gray:#6b6b76;
     --radius:14px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -48,9 +49,9 @@
   .header .right{display:flex; align-items:center; gap:10px;}
   .avatar{
     width:32px; height:32px; border-radius:50%;
-    background:linear-gradient(135deg,#ff3b5c,#a02040);
+    background:linear-gradient(135deg,#ff8c68,#ff5e3a);
     display:flex; align-items:center; justify-content:center;
-    font-size:13px; font-weight:700;
+    font-size:13px; font-weight:700; color:#000;
   }
   .icon-btn{
     background:var(--surface2); border:none; color:var(--text);
@@ -58,8 +59,8 @@
     display:flex; align-items:center; justify-content:center; font-size:16px;
   }
   .btn-add{
-    background:var(--accent); color:#fff; border:none;
-    padding:8px 14px; border-radius:10px; font-weight:700; font-size:13px;
+    background:var(--accent); color:#000; border:none;
+    padding:8px 14px; border-radius:10px; font-weight:800; font-size:13px;
     cursor:pointer;
   }
   .content{flex:1; padding:16px; padding-bottom:96px; overflow-y:auto;}
@@ -135,22 +136,21 @@
     font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer;
     transition:all .15s;
   }
-  .tab.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tab.active{background:var(--accent); border-color:var(--accent); color:#000;}
   .tab .cnt{
-    background:rgba(255,255,255,.15); padding:1px 6px; border-radius:8px;
+    background:rgba(0,0,0,.1); padding:1px 6px; border-radius:8px;
     font-size:11px; margin-left:4px;
   }
-  .tab.active .cnt{background:rgba(0,0,0,.2);}
+  .tab.active .cnt{background:rgba(0,0,0,.2); color:#000;}
   .btn{
     border:none; border-radius:12px; padding:13px 18px;
     font-weight:700; font-size:14px; cursor:pointer;
     display:inline-flex; align-items:center; justify-content:center; gap:6px;
   }
-  .btn-primary{background:var(--accent); color:#fff;}
-  .btn-primary:active{background:#e02c4c;}
+  .btn-primary{background:var(--accent); color:#000;}
   .btn-ghost{background:var(--surface2); color:var(--text);}
-  .btn-danger{background:var(--accent-dim); color:var(--accent); border:1px solid var(--accent);}
-  .btn-success{background:var(--green); color:#042; font-weight:800;}
+  .btn-danger{background:var(--accent-dim); color:var(--red); border:1px solid var(--red);}
+  .btn-success{background:var(--green); color:#000;}
   .btn-block{width:100%;}
   .btn-sm{padding:8px 12px; font-size:12px; border-radius:10px;}
   .btn-row{display:flex; gap:10px;}
@@ -187,7 +187,6 @@
     flex:1; border-radius:4px 4px 0 0; min-height:6px; transition:opacity .15s;
     cursor:pointer; position:relative;
   }
-  .chart .bar:hover{opacity:.75;}
   .chart .bar .val{
     position:absolute; top:-18px; left:0; right:0; text-align:center;
     font-size:11px; font-weight:700; color:var(--muted);
@@ -204,7 +203,7 @@
   .promo-status{font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;}
   .promo-status.active{background:rgba(51,209,122,.15); color:var(--green);}
   .promo-status.expired{background:rgba(107,107,118,.15); color:var(--gray);}
-  .promo-status.off{background:rgba(255,59,92,.15); color:var(--accent);}
+  .promo-status.off{background:rgba(255,59,92,.15); color:var(--red);}
   .product-row{display:flex; gap:12px; align-items:center;}
   .product-img{
     width:52px; height:52px; border-radius:10px; background:var(--surface2);
@@ -300,7 +299,7 @@
     border:none; color:var(--text); width:100%; text-align:left;
   }
   .sheet-item:active{background:var(--surface);}
-  .sheet-item.danger{color:var(--accent);}
+  .sheet-item.danger{color:var(--red);}
   .sheet-item.cancel{background:transparent; border:1px solid var(--border); justify-content:center; margin-top:8px;}
   .demo-badge{
     display:inline-block; font-size:9px; font-weight:700; letter-spacing:.5px;
@@ -317,6 +316,10 @@
 </div>
 
 <script>
+// ====================== НАСТРОЙКИ БОТА ======================
+const ADMIN_PASSWORD = "4847"; 
+const ADMIN_USERNAME = "your_manager_nick"; // Твой юзернейм для связи
+
 // ====================== STATE ======================
 const state = {
   currentTab: 'home',
@@ -334,41 +337,37 @@ const state = {
     {id:482912, name:'Мария Ковалёва', phone:'+7 912 456-78-90', tg:'@maria_k', uid:'8488865563',
      status:'work', time:'12 мин назад', method:'Самовывоз', place:'ТЦ Галерея, 1 этаж',
      pay:'Онлайн', promo:'', promoDisc:0, comment:'',
-     items:[{img:'💨',name:'Девайс VooPoo Drag X',qty:1,price:3200},{img:'🧴',name:'Жидкость Mango Ice',qty:1,price:500}]},
-    {id:482911, name:'Алексей С.', phone:'+7 900 111-22-33', tg:'@alex_s', uid:'8488865564',
-     status:'done', time:'1 час назад', method:'Встреча', place:'ТЦ Галерея, 2 этаж',
-     pay:'При получении', promo:'WELCOME500', promoDisc:500, comment:'',
-     items:[{img:'🧴',name:'Жидкость Mango Ice',qty:2,price:500}]},
-    {id:482910, name:'Дмитрий О.', phone:'+7 921 333-44-55', tg:'@dima', uid:'8488865565',
-     status:'new', time:'8 мин назад', method:'Самовывоз', place:'ТЦ Галерея, 1 этаж',
-     pay:'Онлайн', promo:'', promoDisc:0, comment:'',
-     items:[{img:'⚙️',name:'Испаритель 0.3Ω',qty:2,price:250}]},
-    {id:482909, name:'Ольга М.', phone:'+7 903 555-66-77', tg:'@olga_m', uid:'8488865566',
-     status:'cancel', time:'3 часа назад', method:'Встреча', place:'—',
-     pay:'—', promo:'', promoDisc:0, comment:'Клиент не пришёл',
-     items:[{img:'💨',name:'Девайс VooPoo Drag X',qty:1,price:3200}]},
-    {id:482908, name:'Сергей Н.', phone:'+7 926 888-99-00', tg:'@sergey_n', uid:'8488865567',
-     status:'done', time:'2 часа назад', method:'Встреча', place:'ТЦ Галерея, 2 этаж',
-     pay:'Онлайн', promo:'', promoDisc:0, comment:'',
-     items:[{img:'💨',name:'Девайс VooPoo Drag X',qty:1,price:3200}]}
+     items:[{img:'💨',name:'Девайс VooPoo Drag X',qty:1,price:3200},{img:'🧴',name:'Жидкость Mango Ice',qty:1,price:500}]}
   ],
   products: [
-    {id:1, img:'🧴', name:'Жидкость Mango Ice', price:500, oldPrice:700, cat:'Жидкости', stock:24, on:true, tags:['HIT'], desc:'Сочный манго со льдом'},
-    {id:2, img:'💨', name:'Девайс VooPoo Drag X', price:3200, oldPrice:0, cat:'Девайсы', stock:5, on:true, tags:['NEW'], desc:'Мощный девайс'},
-    {id:3, img:'⚙️', name:'Испаритель 0.3Ω', price:250, oldPrice:0, cat:'Испарители', stock:0, on:false, tags:[], desc:'Сопротивление 0.3 Ом'},
-    {id:4, img:'🧴', name:'Жидкость Blue Raspberry', price:500, oldPrice:0, cat:'Жидкости', stock:18, on:true, tags:[], desc:''}
-  ],
-  promos: [
-    {code:'SMOKY10', type:'percent', value:10, uses:47, limit:0, until:'31.12.2026', status:'active'},
-    {code:'WELCOME500', type:'fixed', value:500, uses:12, limit:50, until:'01.03.2026', status:'active'},
-    {code:'NEWYEAR', type:'percent', value:20, uses:89, limit:0, until:'14.01.2026', status:'expired'},
-    {code:'OLDCODE', type:'percent', value:15, uses:3, limit:100, until:'01.01.2026', status:'off'}
+    {id:1, img:'🧴', name:'Жидкость Mango Ice', price:500, oldPrice:700, cat:'Жидкости', stock:24, on:true, tags:['HIT'], desc:'Сочный манго со льдом'}
   ]
 };
 
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
 let productFilter = 'Все';
-let promoTab = 'active';
 let statsPeriod = 'week';
+
+// ====================== ОТПРАВКА В БОТ ======================
+function sendToBot(command, data = {}) {
+    if (!tg) {
+        alert("Эта кнопка работает только внутри Telegram!");
+        return;
+    }
+    const payload = {
+        action: "admin_panel",
+        password: ADMIN_PASSWORD,
+        command: command,
+        ...data
+    };
+    try {
+        tg.sendData(JSON.stringify(payload));
+    } catch(e) {
+        alert("Ошибка отправки: " + e.message);
+    }
+}
 
 // ====================== HELPERS ======================
 const $ = (s,el=document) => el.querySelector(s);
@@ -381,47 +380,7 @@ const fmtStatus = s => ({new:'Новый',work:'В работе',done:'Выпо�
 const statusColor = s => ({new:'var(--red)',work:'var(--yellow)',done:'var(--green)',cancel:'var(--gray)'}[s]);
 
 function newOrdersCount(){ return state.orders.filter(o=>o.status==='new').length; }
-function workOrdersCount(){ return state.orders.filter(o=>o.status==='work').length; }
 function activeOrdersCount(){ return state.orders.filter(o=>o.status==='new'||o.status==='work').length; }
-
-// --- Single source of truth ---
-function getStats(period){
-  const doneOrders = state.orders.filter(o => o.status === 'done');
-  const totalOrders = state.orders.length;
-  const cancelledCount = state.orders.filter(o => o.status === 'cancel').length;
-  const dayRevenue = doneOrders.reduce((s,o) => s + orderTotal(o), 0);
-  const avgTicket = doneOrders.length > 0 ? Math.round(dayRevenue / doneOrders.length) : 0;
-  const cancelRate = totalOrders > 0 ? cancelledCount / totalOrders : 0;
-  const doneRate = totalOrders > 0 ? doneOrders.length / totalOrders : 0;
-
-  if (period === 'day') {
-    return {
-      revenue: dayRevenue,
-      orders: totalOrders,
-      avg: avgTicket,
-      done: doneOrders.length,
-      cancelled: cancelledCount,
-      cancelRate
-    };
-  }
-
-  // Demo-scaling для других периодов (реальных исторических данных нет)
-  const factor = {week:7, month:30, year:365}[period];
-  const revVar = {week:0.85, month:0.9, year:1.05}[period];
-  const ordVar = {week:0.72, month:0.82, year:0.95}[period];
-
-  const orders = Math.round(totalOrders * factor * ordVar);
-  const revenue = Math.round(dayRevenue * factor * revVar);
-
-  return {
-    revenue,
-    orders,
-    avg: avgTicket,
-    done: Math.round(orders * doneRate),
-    cancelled: Math.round(orders * cancelRate),
-    cancelRate
-  };
-}
 
 function getStatusBreakdown(){
   return {
@@ -432,38 +391,11 @@ function getStatusBreakdown(){
   };
 }
 
-function getTopProducts(){
-  const validOrders = state.orders.filter(o => o.status !== 'cancel');
-  const agg = {};
-  validOrders.forEach(o => {
-    o.items.forEach(i => {
-      if (!agg[i.name]) agg[i.name] = {name: i.name, img: i.img, qty: 0, revenue: 0};
-      agg[i.name].qty += i.qty;
-      agg[i.name].revenue += i.qty * i.price;
-    });
-  });
-  return Object.values(agg).sort((a,b) => b.revenue - a.revenue);
-}
-
-function getDeliveryBreakdown(){
-  const validOrders = state.orders.filter(o => o.status !== 'cancel');
-  const total = validOrders.length;
-  if (total === 0) return {total:0, pickup:0, meeting:0, pickupPct:0, meetingPct:0};
-  const meeting = validOrders.filter(o => o.method === 'Встреча').length;
-  const pickup = total - meeting;
-  return {
-    total, pickup, meeting,
-    pickupPct: Math.round(pickup / total * 100),
-    meetingPct: Math.round(meeting / total * 100)
-  };
-}
-
 // ====================== NAV ======================
 const tabs = [
   {id:'home', ico:'🏠', label:'Главная'},
   {id:'orders', ico:'📦', label:'Заказы'},
   {id:'products', ico:'🛒', label:'Товары'},
-  {id:'promos', ico:'🎟', label:'Промо'},
   {id:'stats', ico:'📊', label:'Стата'},
 ];
 
@@ -505,8 +437,6 @@ function render(){
   else if(s==='order') el.innerHTML = renderOrder(state.screenData);
   else if(s==='products') el.innerHTML = renderProducts();
   else if(s==='product') el.innerHTML = renderProductEdit(state.screenData);
-  else if(s==='promos') el.innerHTML = renderPromos();
-  else if(s==='promo-new') el.innerHTML = renderPromoNew();
   else if(s==='stats') el.innerHTML = renderStats();
   window.scrollTo(0,0);
   el.scrollTop = 0;
@@ -515,36 +445,28 @@ function render(){
 // ====================== SCREEN: HOME ======================
 function renderHome(){
   const newO = state.orders.filter(o=>o.status==='new');
-  const stats = getStats('day');
   const bd = getStatusBreakdown();
   const maxBd = Math.max(bd.new, bd.work, bd.done, bd.cancel, 1);
-
   const barColors = {new:'var(--red)', work:'var(--yellow)', done:'var(--green)', cancel:'var(--gray)'};
-  const barLabels = {new:'Новые', work:'В работе', done:'Вып.', cancel:'Отменено'};
 
   return `
     <div class="header">
-      <div class="brand">🔥 SMOKY <span>ADMIN</span></div>
-      <div class="right">
-        <div class="avatar">В</div>
-      </div>
+      <div class="brand">⚓ GALLEON <span>ADMIN</span></div>
+      <div class="right"><div class="avatar">A</div></div>
     </div>
     <div class="content">
       <div class="tiles">
         <div class="tile">
-          <div class="lbl">Сегодня</div>
-          <div class="val">${stats.orders}</div>
-          <div class="sub">заказов</div>
+          <div class="lbl">Новые</div>
+          <div class="val">${newO.length}</div>
         </div>
         <div class="tile">
           <div class="lbl">В работе</div>
           <div class="val">${activeOrdersCount()}</div>
-          <div class="sub">${newO.length ? `<span class="warn">⚠ ${newO.length} новых</span>` : 'всё ок'}</div>
         </div>
         <div class="tile wide">
-          <div class="lbl">Выручка сегодня</div>
-          <div class="val">${money(stats.revenue)}</div>
-          <div class="sub">по ${stats.done} выполненным <span class="demo-badge" style="margin-left:auto">синхр.</span></div>
+          <div class="lbl">Выручка (демо)</div>
+          <div class="val">${money(state.orders.reduce((s,o)=>s+orderTotal(o),0))}</div>
         </div>
       </div>
 
@@ -562,36 +484,13 @@ function renderHome(){
           </div>
         </div>
       `).join('') : `<div class="empty"><div class="ico">✨</div>Новых заказов нет</div>`}
-
-      <div class="section-title">Заказы по статусам</div>
-      <div class="card">
-        <div class="chart">
-          ${['new','work','done','cancel'].map(k=>`
-            <div class="bar" style="height:${(bd[k]/maxBd)*100}%; background:${barColors[k]}" title="${barLabels[k]}: ${bd[k]}">
-              <div class="val">${bd[k]}</div>
-            </div>
-          `).join('')}
-        </div>
-        <div class="chart-labels">
-          <span>Новые</span><span>В работе</span><span>Вып.</span><span>Отменено</span>
-        </div>
-      </div>
     </div>
   `;
 }
 
 // ====================== SCREEN: ORDERS ======================
 function renderOrders(){
-  const tab = state.ordersTab;
-  let filtered = state.orders.filter(o=>o.status===tab);
-  if(state.ordersSearch){
-    const q = state.ordersSearch.toLowerCase();
-    filtered = filtered.filter(o =>
-      String(o.id).includes(q) ||
-      o.name.toLowerCase().includes(q) ||
-      o.phone.includes(q)
-    );
-  }
+  let filtered = state.orders.filter(o=>o.status===state.ordersTab);
   const cnt = {
     new: state.orders.filter(o=>o.status==='new').length,
     work: state.orders.filter(o=>o.status==='work').length,
@@ -600,22 +499,12 @@ function renderOrders(){
   };
 
   return `
-    <div class="header">
-      <div class="title">Заказы</div>
-      <div class="right">
-        <button class="icon-btn" onclick="toggleSearch()">${state.showSearch?'✕':'🔍'}</button>
-      </div>
-    </div>
+    <div class="header"><div class="title">Заказы</div></div>
     <div class="content">
-      ${state.showSearch ? `
-        <input class="input" id="orderSearchInput" placeholder="Имя, телефон или #номер" value="${escapeHtml(state.ordersSearch)}"
-          oninput="setOrderSearch(this.value)" style="margin-bottom:12px;" autofocus>
-      ` : ''}
       <div class="tabs">
-        <button class="tab ${tab==='new'?'active':''}" onclick="setOrdersTab('new')">Новые${cnt.new?`<span class="cnt">${cnt.new}</span>`:''}</button>
-        <button class="tab ${tab==='work'?'active':''}" onclick="setOrdersTab('work')">В работе${cnt.work?`<span class="cnt">${cnt.work}</span>`:''}</button>
-        <button class="tab ${tab==='done'?'active':''}" onclick="setOrdersTab('done')">Выполнено</button>
-        <button class="tab ${tab==='cancel'?'active':''}" onclick="setOrdersTab('cancel')">Отменено</button>
+        <button class="tab ${state.ordersTab==='new'?'active':''}" onclick="setOrdersTab('new')">Новые${cnt.new?`<span class="cnt">${cnt.new}</span>`:''}</button>
+        <button class="tab ${state.ordersTab==='work'?'active':''}" onclick="setOrdersTab('work')">В работе</button>
+        <button class="tab ${state.ordersTab==='done'?'active':''}" onclick="setOrdersTab('done')">Выполнено</button>
       </div>
 
       ${filtered.length ? filtered.map(o=>`
@@ -627,22 +516,16 @@ function renderOrders(){
             <span class="order-time">${o.time}</span>
           </div>
           <div class="order-name" style="margin-top:8px;">${escapeHtml(o.name)}</div>
-          <div class="order-phone">${o.phone}</div>
           <div class="order-meta" style="margin-top:8px;">
-            <span>${o.method==='Встреча'?'🚚':'🏪'} ${o.method}</span>
-            <span>· ${orderCount(o)} тов.</span>
-            <span>· <span class="price">${money(orderTotal(o))}</span></span>
+            <span class="price">${money(orderTotal(o))}</span>
           </div>
-          ${o.promo ? `<div class="order-promo" style="margin-top:6px;">🎟 ${o.promo}</div>` : ''}
         </div>
-      `).join('') : `<div class="empty"><div class="ico">📭</div>${state.ordersSearch?'Ничего не найдено':'Нет заказов в этом статусе'}</div>`}
+      `).join('') : `<div class="empty"><div class="ico">📭</div>Нет заказов</div>`}
     </div>
   `;
 }
 
-function setOrdersTab(t){ state.ordersTab = t; state.ordersSearch=''; render(); }
-function toggleSearch(){ state.showSearch = !state.showSearch; state.ordersSearch=''; render(); }
-function setOrderSearch(v){ state.ordersSearch = v; render(); }
+function setOrdersTab(t){ state.ordersTab = t; render(); }
 function openOrder(id){ goScreen('order', id); }
 
 // ====================== SCREEN: ORDER DETAIL ======================
@@ -656,7 +539,6 @@ function renderOrder(id){
     <div class="header">
       <button class="back" onclick="goBack()">←</button>
       <div class="title">Заказ #${o.id}</div>
-      <div class="right"><button class="icon-btn" onclick="showOrderMenu(${o.id})">⋮</button></div>
     </div>
     <div class="content">
       <div class="status-banner" style="margin-bottom:14px;">
@@ -664,28 +546,18 @@ function renderOrder(id){
         <span class="st" style="color:${statusColor(o.status)}">${fmtStatus(o.status)}</span>
         <div class="actions">
           ${o.status==='new' ? `
-            <button class="btn btn-primary btn-sm" onclick="setStatus(${o.id},'work')">Принять</button>
-            <button class="btn btn-danger btn-sm" onclick="setStatus(${o.id},'cancel')">Отменить</button>
+            <button class="btn btn-primary btn-sm" onclick="changeBotStatus(${o.id}, 'confirmed')">Принять</button>
+            <button class="btn btn-danger btn-sm" onclick="changeBotStatus(${o.id}, 'cancelled')">Отменить</button>
           ` : o.status==='work' ? `
-            <button class="btn btn-success btn-sm" onclick="setStatus(${o.id},'done')">Выполнен</button>
-            <button class="btn btn-danger btn-sm" onclick="setStatus(${o.id},'cancel')">Отменить</button>
-          ` : `
-            <button class="btn btn-ghost btn-sm" onclick="setStatus(${o.id},'new')">Вернуть в новые</button>
-          `}
+            <button class="btn btn-success btn-sm" onclick="changeBotStatus(${o.id}, 'completed')">Выполнен</button>
+          ` : ''}
         </div>
       </div>
 
       <div class="card">
         <div class="kv"><span class="k">👤</span><span class="v">${escapeHtml(o.name)}</span></div>
-        <div class="kv"><span class="k">📞</span><span class="v">${o.phone}</span><button class="act" onclick="callPhone('${o.phone}')">Позвонить</button></div>
-        <div class="kv"><span class="k">💬</span><span class="v">${o.tg}</span><button class="act" onclick="openTelegram('${o.tg}')">Написать</button></div>
-        <div class="kv"><span class="k">🆔</span><span class="v muted">ID: ${o.uid}</span></div>
-      </div>
-
-      <div class="card">
-        <div class="kv"><span class="k">${o.method==='Встреча'?'🚚':'🏪'}</span><span class="v">${o.method}</span></div>
-        <div class="kv"><span class="k">📍</span><span class="v">${o.place}</span></div>
-        <div class="kv"><span class="k">💰</span><span class="v">Оплата: ${o.pay}</span></div>
+        <div class="kv"><span class="k">📞</span><span class="v">${o.phone}</span></div>
+        <div class="kv"><span class="k">💬</span><span class="v">${o.tg}</span></div>
       </div>
 
       <div class="section-title">Товары</div>
@@ -697,73 +569,22 @@ function renderOrder(id){
             <div class="oprice">${money(i.price*i.qty)}</div>
           </div>
         `).join('')}
-        <div class="divider"></div>
-        <div class="total-row"><span class="muted">Подытог</span><span>${money(subtotal)}</span></div>
-        ${o.promo ? `<div class="total-row"><span class="muted">Промокод ${o.promo}</span><span class="accent">${o.promoDisc?('-'+money(o.promoDisc)):'—'}</span></div>` : ''}
         <div class="total-row grand"><span>ИТОГО</span><span>${money(total)}</span></div>
-      </div>
-
-      <div class="section-title">Комментарий админа</div>
-      <textarea class="input" placeholder="Заметки для себя..." oninput="saveComment(${o.id}, this.value)">${escapeHtml(o.comment)}</textarea>
-
-      <div class="row-actions" style="margin-top:16px;">
-        ${o.status!=='done' ? `<button class="btn btn-success btn-block" onclick="setStatus(${o.id},'done')">✅ Выполнен</button>` : ''}
-        ${o.status!=='cancel' ? `<button class="btn btn-danger btn-block" onclick="setStatus(${o.id},'cancel')">❌ Отменить</button>` : ''}
       </div>
     </div>
   `;
 }
 
-function setStatus(id, status){
-  const o = state.orders.find(x=>x.id===id);
-  if(!o) return;
-  o.status = status;
-  render();
-  toast(`Статус изменён: ${fmtStatus(status)}`);
-}
-function saveComment(id, val){
-  const o = state.orders.find(x=>x.id===id);
-  if(o) o.comment = val;
-}
-function callPhone(phone){
-  if(confirm(`Позвонить ${phone}?`)){
-    window.location.href = 'tel:' + phone.replace(/[^\d+]/g, '');
-  }
-}
-function openTelegram(tg){
-  const nick = tg.replace('@','');
-  window.open('https://t.me/' + nick, '_blank');
-}
-
-// ====================== BOTTOM SHEET ======================
-function openSheet(html){
-  closeSheet();
-  const s = document.createElement('div');
-  s.id = 'sheet';
-  s.className = 'sheet';
-  s.innerHTML = `<div class="sheet-bg" onclick="closeSheet()"></div><div class="sheet-panel">${html}</div>`;
-  document.body.appendChild(s);
-}
-function closeSheet(){
-  const s = document.getElementById('sheet');
-  if(s) s.remove();
-}
-function showOrderMenu(id){
-  const o = state.orders.find(x=>x.id===id);
-  if(!o) return;
-  openSheet(`
-    <div class="sheet-title">Заказ #${o.id}</div>
-    <div class="sheet-sub">${escapeHtml(o.name)} · ${money(orderTotal(o))}</div>
-    <button class="sheet-item" onclick="closeSheet(); callPhone('${o.phone}')">📞 Позвонить</button>
-    <button class="sheet-item" onclick="closeSheet(); openTelegram('${o.tg}')">💬 Написать в Telegram</button>
-    <button class="sheet-item" onclick="closeSheet(); copyOrderId(${o.id})">📋 Скопировать номер</button>
-    ${o.status!=='cancel' ? `<button class="sheet-item danger" onclick="closeSheet(); setStatus(${o.id},'cancel')">❌ Отменить заказ</button>` : ''}
-    <button class="sheet-item cancel" onclick="closeSheet()">Закрыть</button>
-  `);
-}
-function copyOrderId(id){
-  navigator.clipboard?.writeText('#'+id);
-  toast('Номер #'+id+' скопирован');
+function changeBotStatus(orderId, status) {
+    sendToBot("change_status", { order_id: orderId, status: status });
+    
+    const o = state.orders.find(x=>x.id===orderId);
+    if(o) {
+        if(status === 'confirmed') o.status = 'work';
+        if(status === 'completed') o.status = 'done';
+        if(status === 'cancelled') o.status = 'cancel';
+    }
+    render();
 }
 
 // ====================== SCREEN: PRODUCTS ======================
@@ -787,25 +608,15 @@ function renderProducts(){
             <div class="product-img">${p.img}</div>
             <div class="product-info">
               <div class="product-name">${escapeHtml(p.name)}</div>
-              <div class="product-meta">${money(p.price)} · ${p.cat} · ${p.on?'● вкл':'⦿ выкл'}</div>
-              <div class="product-meta">Остаток: ${p.stock} шт ${p.stock===0?'<span style="color:var(--accent)">(нет)</span>':''}</div>
+              <div class="product-meta">${money(p.price)} · ${p.cat}</div>
             </div>
-            <button class="toggle ${p.on?'on':''}" onclick="event.stopPropagation(); toggleProduct(${p.id})"></button>
           </div>
         </div>
       `).join('')}
-      ${!filtered.length ? `<div class="empty"><div class="ico">📦</div>Товаров нет</div>` : ''}
     </div>
   `;
 }
 function setProductFilter(f){ productFilter=f; render(); }
-function toggleProduct(id){
-  const p = state.products.find(x=>x.id===id);
-  if(!p) return;
-  p.on = !p.on;
-  render();
-  toast(p.on ? 'Показан на витрине' : 'Скрыт с витрины');
-}
 
 // ====================== SCREEN: PRODUCT EDIT ======================
 function renderProductEdit(data){
@@ -814,21 +625,13 @@ function renderProductEdit(data){
     ? {id:null, img:'📷', name:'', price:'', oldPrice:'', cat:'Жидкости', stock:'', on:true, tags:[], desc:''}
     : state.products.find(x=>x.id===data.id);
   if(!p) return `<div class="content"><div class="empty">Не найдено</div></div>`;
-  const tags = ['NEW','HIT','-20%','Скрыть'];
 
   return `
     <div class="header">
       <button class="back" onclick="goBack()">←</button>
       <div class="title">${isNew?'Новый товар':'Редактирование'}</div>
-      <div class="right">${!isNew?`<button class="icon-btn" onclick="deleteProduct(${p.id})">🗑</button>`:''}</div>
     </div>
     <div class="content">
-      <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(this)">
-      <div class="photo-box" onclick="document.getElementById('photoInput').click()">
-        <div style="font-size:36px;">${p.img||'📷'}</div>
-        <div style="font-size:12px;">Тап чтобы заменить</div>
-      </div>
-
       <div class="field"><label>Название</label>
         <input class="input" id="pName" value="${escapeHtml(p.name)}" placeholder="Жидкость Mango Ice">
       </div>
@@ -840,221 +643,38 @@ function renderProductEdit(data){
       <div class="field"><label>Цена</label>
         <div class="input-suffix"><input class="input" id="pPrice" type="number" value="${p.price}" placeholder="500"><span>₽</span></div>
       </div>
-      <div class="field"><label>Старая цена (для скидки)</label>
-        <div class="input-suffix"><input class="input" id="pOldPrice" type="number" value="${p.oldPrice||''}" placeholder="700"><span>₽</span></div>
-      </div>
       <div class="field"><label>Описание</label>
-        <textarea class="input" id="pDesc" placeholder="Сочный манго со льдом...">${escapeHtml(p.desc||'')}</textarea>
+        <textarea class="input" id="pDesc" placeholder="Сочный манго...">${escapeHtml(p.desc||'')}</textarea>
       </div>
       <div class="field"><label>Остаток на складе</label>
         <div class="input-suffix"><input class="input" id="pStock" type="number" value="${p.stock}" placeholder="24"><span>шт</span></div>
-      </div>
-
-      <div class="field"><label>Метки</label>
-        <div class="chips">
-          ${tags.map(t=>`<button class="chip ${p.tags.includes(t)?'on':''}" onclick="toggleTag(${p.id},'${t}',this)">${t}</button>`).join('')}
-        </div>
-      </div>
-
-      <div class="field" style="display:flex; align-items:center; gap:10px;">
-        <button class="toggle ${p.on?'on':''}" id="pOn" onclick="this.classList.toggle('on')"></button>
-        <span style="font-size:14px;">Показывать на витрине</span>
       </div>
 
       <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveProduct(${p.id})">СОХРАНИТЬ</button>
     </div>
   `;
 }
-function toggleTag(id, tag, el){
-  el.classList.toggle('on');
-  const p = state.products.find(x=>x.id===id);
-  if(!p) return;
-  if(p.tags.includes(tag)) p.tags = p.tags.filter(t=>t!==tag);
-  else p.tags.push(tag);
-}
-function deleteProduct(id){
-  if(!confirm('Удалить товар?')) return;
-  state.products = state.products.filter(x=>x.id!==id);
-  goTab('products');
-  toast('Товар удалён');
-}
+
 function saveProduct(id){
   const name = $('#pName')?.value || 'Новый товар';
   const price = parseInt($('#pPrice')?.value) || 0;
-  const oldPrice = parseInt($('#pOldPrice')?.value) || 0;
   const stock = parseInt($('#pStock')?.value) || 0;
   const desc = $('#pDesc')?.value || '';
   const cat = $('#pCat')?.value || 'Жидкости';
-  const on = $('#pOn')?.classList.contains('on') ?? true;
 
   if(id){
-    const p = state.products.find(x=>x.id===id);
-    if(p) Object.assign(p, {name, price, oldPrice, stock, desc, cat, on});
-    toast('Сохранено');
+    // Отправляем обновление
+    sendToBot("update_product", { id, name, price, stock, desc, cat });
   } else {
-    state.products.push({
-      id: Date.now(), img:'📷', name, price, oldPrice, stock, desc, cat, on, tags:[]
-    });
-    toast('Товар добавлен');
+    // Отправляем создание
+    sendToBot("add_product", { name, price, stock, desc, cat });
   }
-  setTimeout(()=>goTab('products'), 400);
-}
-function handlePhoto(input){
-  if(input.files && input.files[0]){
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const box = document.querySelector('.photo-box');
-      if(box) box.innerHTML = `<img src="${e.target.result}" alt="фото">`;
-      toast('Фото загружено');
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-// ====================== SCREEN: PROMOS ======================
-function renderPromos(){
-  const filtered = state.promos.filter(p=>p.status===promoTab);
-  return `
-    <div class="header">
-      <div class="title">Промокоды</div>
-      <div class="right"><button class="btn-add" onclick="goScreen('promo-new')">+ Создать</button></div>
-    </div>
-    <div class="content">
-      <div class="tabs">
-        <button class="tab ${promoTab==='active'?'active':''}" onclick="setPromoTab('active')">Активные</button>
-        <button class="tab ${promoTab==='expired'?'active':''}" onclick="setPromoTab('expired')">Истекшие</button>
-        <button class="tab ${promoTab==='off'?'active':''}" onclick="setPromoTab('off')">Отключённые</button>
-      </div>
-
-      ${filtered.length ? filtered.map(p=>`
-        <div class="card clickable" onclick="showPromoMenu('${p.code}')">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <span class="promo-code">${p.code}</span>
-            <span class="promo-discount">${p.type==='percent'?'-'+p.value+'%':'-'+p.value+'₽'}</span>
-            <span class="promo-status ${p.status}">${p.status==='active'?'● активен':p.status==='expired'?'⚫ истёк':'⦿ отключён'}</span>
-          </div>
-          <div style="font-size:12px; color:var(--muted);">${p.uses} использований</div>
-          <div style="font-size:12px; color:var(--muted); margin-top:2px;">
-            ${p.until?`до ${p.until}`:'без срока'} · ${p.limit?`лимит ${p.limit}`:'без лимита'}
-          </div>
-        </div>
-      `).join('') : `<div class="empty"><div class="ico">🎟</div>Промокодов нет</div>`}
-    </div>
-  `;
-}
-function setPromoTab(t){ promoTab=t; render(); }
-function showPromoMenu(code){
-  const p = state.promos.find(x=>x.code===code);
-  if(!p) return;
-  openSheet(`
-    <div class="sheet-title">${p.code}</div>
-    <div class="sheet-sub">${p.type==='percent'?'-'+p.value+'%':'-'+p.value+'₽'} · ${p.uses} использований</div>
-    <button class="sheet-item" onclick="closeSheet(); copyCode('${p.code}')">📋 Скопировать код</button>
-    <button class="sheet-item" onclick="closeSheet(); togglePromoStatus('${p.code}')">
-      ${p.status==='active'?'⏸ Отключить':'▶ Включить'}
-    </button>
-    <button class="sheet-item danger" onclick="closeSheet(); deletePromo('${p.code}')">🗑 Удалить</button>
-    <button class="sheet-item cancel" onclick="closeSheet()">Закрыть</button>
-  `);
-}
-function copyCode(c){
-  navigator.clipboard?.writeText(c);
-  toast('Код '+c+' скопирован');
-}
-function togglePromoStatus(code){
-  const p = state.promos.find(x=>x.code===code);
-  if(!p) return;
-  p.status = p.status==='active' ? 'off' : 'active';
-  render();
-  toast(p.status==='active'?'Включён':'Отключён');
-}
-function deletePromo(code){
-  if(!confirm('Удалить промокод '+code+'?')) return;
-  state.promos = state.promos.filter(x=>x.code!==code);
-  render();
-  toast('Промокод удалён');
-}
-
-// ====================== SCREEN: PROMO NEW ======================
-function renderPromoNew(){
-  const isPercent = state.promoFormType==='percent';
-  return `
-    <div class="header">
-      <button class="back" onclick="goBack()">←</button>
-      <div class="title">Новый промокод</div>
-    </div>
-    <div class="content">
-      <div class="field"><label>Код</label>
-        <div class="input-row">
-          <input class="input" id="promoCode" placeholder="SMOKY20">
-          <button class="btn btn-ghost" onclick="randCode()">🎲</button>
-        </div>
-      </div>
-
-      <div class="field"><label>Тип скидки</label>
-        <div class="segmented">
-          <button class="${isPercent?'active':''}" onclick="setPromoType('percent')">Процент %</button>
-          <button class="${!isPercent?'active':''}" onclick="setPromoType('fixed')">Фикс. сумма ₽</button>
-        </div>
-      </div>
-
-      <div class="field"><label>Размер скидки</label>
-        <div class="input-suffix">
-          <input class="input" id="promoValue" type="number" placeholder="${isPercent?'20':'500'}">
-          <span>${isPercent?'%':'₽'}</span>
-        </div>
-      </div>
-
-      <div class="field"><label>Минимальная сумма заказа (опционально)</label>
-        <div class="input-suffix"><input class="input" type="number" placeholder="1000"><span>₽</span></div>
-      </div>
-
-      <div class="field"><label>Срок действия</label>
-        <input class="input" type="text" placeholder="01.03.2026 (или пусто — без срока)">
-      </div>
-
-      <div class="field"><label>Лимит активаций</label>
-        <input class="input" id="promoLimit" type="number" placeholder="50 (или пусто — без лимита)">
-      </div>
-
-      <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="createPromo()">СОЗДАТЬ</button>
-    </div>
-  `;
-}
-function setPromoType(t){ state.promoFormType=t; render(); }
-function randCode(){
-  const codes = ['SMOKY','VAPE','FIRE','ICE','BLACK','RED','POD','PUFF'];
-  const c = codes[Math.floor(Math.random()*codes.length)] + Math.floor(Math.random()*90+10);
-  $('#promoCode').value = c;
-  toast('Сгенерировано: '+c);
-}
-function createPromo(){
-  const code = ($('#promoCode')?.value||'').trim().toUpperCase();
-  if(!code){ toast('Введи код'); return; }
-  if(state.promos.some(p=>p.code===code)){ toast('Такой код уже есть'); return; }
-  const value = parseInt($('#promoValue')?.value) || (state.promoFormType==='percent'?10:500);
-  const limit = parseInt($('#promoLimit')?.value) || 0;
-  state.promos.unshift({
-    code, type:state.promoFormType, value, uses:0, limit,
-    until:'01.03.2026', status:'active'
-  });
-  toast('Промокод создан');
-  setTimeout(()=>goTab('promos'), 400);
 }
 
 // ====================== SCREEN: STATS ======================
 function renderStats(){
-  const stats = getStats(statsPeriod);
   const bd = getStatusBreakdown();
-  const top = getTopProducts();
-  const delivery = getDeliveryBreakdown();
   const maxBd = Math.max(bd.new, bd.work, bd.done, bd.cancel, 1);
-  const cancelRate = (stats.cancelRate * 100).toFixed(1);
-  const periodName = {day:'сегодня', week:'за неделю', month:'за месяц', year:'за год'}[statsPeriod];
-  const approx = statsPeriod === 'day' ? '' : '≈ ';
-  const isDemoScale = statsPeriod !== 'day';
-
   const barColors = {new:'var(--red)', work:'var(--yellow)', done:'var(--green)', cancel:'var(--gray)'};
 
   return `
@@ -1062,31 +682,18 @@ function renderStats(){
       <div class="title">Статистика</div>
     </div>
     <div class="content">
-      <div class="tabs">
-        ${[['day','День'],['week','Неделя'],['month','Месяц'],['year','Год']].map(([k,l])=>
-          `<button class="tab ${statsPeriod===k?'active':''}" onclick="setStatsPeriod('${k}')">${l}</button>`
-        ).join('')}
-      </div>
-
       <div class="tiles">
         <div class="tile">
-          <div class="lbl">Выручка</div>
-          <div class="val" style="font-size:22px;">${approx}${money(stats.revenue)}</div>
-          <div class="sub">${statsPeriod==='day'?'по '+stats.done+' выполненным':`по ${stats.done} выполненным`}</div>
+          <div class="lbl">Всего заказов</div>
+          <div class="val" style="font-size:22px;">${state.orders.length}</div>
         </div>
         <div class="tile">
-          <div class="lbl">Заказы</div>
-          <div class="val" style="font-size:22px;">${approx}${stats.orders}</div>
-          <div class="sub">${periodName}${isDemoScale?' <span class="demo-badge">demo</span>':''}</div>
-        </div>
-        <div class="tile wide">
-          <div class="lbl">Средний чек</div>
-          <div class="val" style="font-size:22px;">${money(stats.avg)}</div>
-          <div class="sub">по ${stats.done} выполненным</div>
+          <div class="lbl">Выручка</div>
+          <div class="val" style="font-size:22px;">${money(state.orders.reduce((s,o)=>s+orderTotal(o),0))}</div>
         </div>
       </div>
 
-      <div class="section-title">Заказы по статусам <span class="demo-badge">реал.</span></div>
+      <div class="section-title">Заказы по статусам</div>
       <div class="card">
         <div class="chart">
           ${['new','work','done','cancel'].map(k=>`
@@ -1099,86 +706,9 @@ function renderStats(){
           <span>Новые</span><span>В работе</span><span>Вып.</span><span>Отменено</span>
         </div>
       </div>
-
-      <div class="section-title">Топ товаров <span class="demo-badge">реал.</span></div>
-      <div class="card">
-        ${top.length ? top.slice(0,5).map((p,i)=>`
-          <div class="stat-line">
-            <span>${i+1}. ${escapeHtml(p.name)}</span>
-            <span class="muted">${p.qty} шт · ${money(p.revenue)}</span>
-          </div>
-        `).join('') : `<div class="empty" style="padding:20px;"><div class="ico">📊</div>Пока нет продаж</div>`}
-      </div>
-
-      <div class="section-title">Способы получения <span class="demo-badge">реал.</span></div>
-      <div class="card">
-        ${delivery.total ? `
-          <div class="stat-line" style="flex-direction:column; align-items:stretch; gap:4px;">
-            <div style="display:flex; justify-content:space-between;">
-              <span>🏪 Самовывоз</span>
-              <span class="muted">${delivery.pickup} / ${delivery.total} · ${delivery.pickupPct}%</span>
-            </div>
-            <div class="bar-progress"><div style="width:${delivery.pickupPct}%"></div></div>
-          </div>
-          <div class="stat-line" style="flex-direction:column; align-items:stretch; gap:4px; border-bottom:none;">
-            <div style="display:flex; justify-content:space-between;">
-              <span>🚚 Встреча</span>
-              <span class="muted">${delivery.meeting} / ${delivery.total} · ${delivery.meetingPct}%</span>
-            </div>
-            <div class="bar-progress"><div style="width:${delivery.meetingPct}%"></div></div>
-          </div>
-        ` : `<div class="empty" style="padding:20px;"><div class="ico">📦</div>Нет данных</div>`}
-      </div>
-
-      <div class="section-title">Промокоды <span class="demo-badge">реал.</span></div>
-      <div class="card">
-        ${state.promos.filter(p=>p.uses>0).slice(0,3).map(p=>`
-          <div class="stat-line"><span>${p.code}</span><span class="muted">${p.uses} раз</span></div>
-        `).join('') || '<div class="stat-line muted">Нет использований</div>'}
-      </div>
-
-      <div class="card" style="margin-top:14px; background:rgba(51,209,92,.08); border-color:rgba(51,209,92,.3);">
-        <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>Отмены ${periodName}</span>
-          <span class="${parseFloat(cancelRate) < 5 ? 'success' : 'accent'}">
-            ${cancelRate}% · ${stats.cancelled} шт
-          </span>
-        </div>
-      </div>
-
-      <div style="margin-top:24px; text-align:center; font-size:10px; color:var(--muted2); line-height:1.6;">
-        <span class="demo-badge">demo</span> — масштабировано от сегодняшних данных (истории пока нет)<br>
-        <span class="demo-badge">реал.</span> — посчитано из текущих заказов
-      </div>
     </div>
   `;
 }
-function setStatsPeriod(p){ statsPeriod=p; render(); }
-
-// ====================== TOAST ======================
-let toastTimer;
-function toast(msg){
-  let t = $('#toast');
-  if(!t){
-    t = document.createElement('div');
-    t.id = 'toast';
-    t.style.cssText = `
-      position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
-      background:var(--surface3); color:var(--text); padding:10px 16px;
-      border-radius:10px; font-size:13px; font-weight:600; z-index:100;
-      box-shadow:0 4px 20px rgba(0,0,0,.5); transition:opacity .2s, bottom .2s;
-      max-width:340px; text-align:center;
-    `;
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.opacity = '1';
-  t.style.bottom = '96px';
-  clearTimeout(timer);
-  var timer = setTimeout(()=>{ t.style.opacity='0'; t.style.bottom='80px'; }, 1800);
-}
-clearTimeout(toastTimer);
-toastTimer = null;
 
 // ====================== BOOT ======================
 render();
