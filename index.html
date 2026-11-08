@@ -1038,28 +1038,26 @@
         }
 
         function sendFeedback() {
-            const text = document.getElementById('feedback-text').value.trim();
-            if (!text) return showToast('Введите сообщение!');
-            
-            if (!tg || !tgUser) {
-                return showToast('Откройте приложение через Telegram-бота!');
-            }
+    const text = document.getElementById('feedback-text').value.trim();
+    if (!text) return showToast('Введите сообщение!');
+    
+    if (!tg) {
+        return showToast('Откройте приложение через Telegram-бота!');
+    }
 
-            const payload = { 
-                action: 'feedback', 
-                userId: tgUser.id, 
-                text: text 
-            };
+    const payload = { 
+        action: 'feedback', 
+        text: text 
+    };
 
-            try {
-                tg.sendData(JSON.stringify(payload));
-                document.getElementById('feedback-text').value = '';
-                showToast('✅ Сообщение отправлено администратору!');
-            } catch (e) {
-                showToast('Ошибка отправки. Попробуйте ещё раз.');
-            }
-        }
-
+    try {
+        tg.sendData(JSON.stringify(payload));
+        document.getElementById('feedback-text').value = '';
+        showToast('✅ Сообщение отправлено администратору!');
+    } catch (e) {
+        showToast('Ошибка отправки. Попробуйте ещё раз.');
+    }
+}
         function toggleFavorite(id) {
             const idx = favorites.indexOf(id);
             if (idx > -1) favorites.splice(idx, 1);
