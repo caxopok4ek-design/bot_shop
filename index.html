@@ -1037,19 +1037,7 @@
             showToast('✅ Заказ отправлен администратору!');
         }
 
-        function sendFeedback() {
-            const text = document.getElementById('feedback-text').value.trim();
-            if (!text) return showToast('Введите сообщение!');
-            
-            if (tg && tgUser) {
-                const payload = { action: 'feedback', userId: tgUser.id, text: text };
-                try {
-                    tg.sendData(JSON.stringify(payload));
-                    showToast('✅ Сообщение отправлено!');
-                    document.getElementById('feedback-text').value = '';
-                } catch(e) { showToast('Ошибка отправки'); }
-            }
-        }
+       sendFeedback
 
         function toggleFavorite(id) {
             const idx = favorites.indexOf(id);
