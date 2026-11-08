@@ -39,274 +39,77 @@
     border-bottom:1px solid var(--border);
     min-height:56px;
   }
-  .header .back{
-    background:none; border:none; color:var(--text); font-size:20px;
-    padding:4px 8px 4px 0; cursor:pointer;
-  }
+  .header .back{background:none; border:none; color:var(--text); font-size:20px; padding:4px 8px 4px 0; cursor:pointer;}
   .header .title{font-size:17px; font-weight:700; flex:1;}
   .header .brand{font-size:15px; font-weight:800; letter-spacing:.5px; flex:1;}
   .header .brand span{color:var(--accent);}
   .header .right{display:flex; align-items:center; gap:10px;}
-  .avatar{
-    width:32px; height:32px; border-radius:50%;
-    background:linear-gradient(135deg,#ff8c68,#ff5e3a);
-    display:flex; align-items:center; justify-content:center;
-    font-size:13px; font-weight:700; color:#000;
-  }
-  .icon-btn{
-    background:var(--surface2); border:none; color:var(--text);
-    width:36px; height:36px; border-radius:10px; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; font-size:16px;
-  }
-  .btn-add{
-    background:var(--accent); color:#000; border:none;
-    padding:8px 14px; border-radius:10px; font-weight:800; font-size:13px;
-    cursor:pointer;
-  }
+  .avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#ff8c68,#ff5e3a); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#000;}
+  .icon-btn{background:var(--surface2); border:none; color:var(--text); width:36px; height:36px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px;}
+  .btn-add{background:var(--accent); color:#000; border:none; padding:8px 14px; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer;}
   .content{flex:1; padding:16px; padding-bottom:96px; overflow-y:auto;}
-  .nav{
-    position:fixed; bottom:0; left:0; right:0;
-    max-width:430px; margin:0 auto;
-    background:rgba(16,16,20,.96);
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    border-top:1px solid var(--border);
-    display:flex; padding:8px 0 calc(8px + env(safe-area-inset-bottom));
-    z-index:60;
-  }
-  .nav-item{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
-    background:none; border:none; color:var(--muted2); font-size:10px; font-weight:600;
-    cursor:pointer; padding:4px; position:relative;
-  }
+  .nav{position:fixed; bottom:0; left:0; right:0; max-width:430px; margin:0 auto; background:rgba(16,16,20,.96); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--border); display:flex; padding:8px 0 calc(8px + env(safe-area-inset-bottom)); z-index:60;}
+  .nav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; color:var(--muted2); font-size:10px; font-weight:600; cursor:pointer; padding:4px; position:relative;}
   .nav-item .ico{font-size:20px; line-height:1;}
   .nav-item.active{color:var(--accent);}
-  .nav-item .dot{
-    position:absolute; top:2px; right:calc(50% - 16px);
-    width:8px; height:8px; border-radius:50%; background:var(--accent);
-    border:2px solid var(--bg);
-  }
-  .card{
-    background:var(--surface); border-radius:var(--radius);
-    padding:14px; border:1px solid var(--border);
-  }
+  .nav-item .dot{position:absolute; top:2px; right:calc(50% - 16px); width:8px; height:8px; border-radius:50%; background:var(--accent); border:2px solid var(--bg);}
+  .card{background:var(--surface); border-radius:var(--radius); padding:14px; border:1px solid var(--border);}
   .card + .card{margin-top:10px;}
   .card.clickable{cursor:pointer; transition:background .15s;}
   .card.clickable:active{background:var(--surface2);}
   .tiles{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .tile{
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--radius); padding:14px;
-  }
+  .tile{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px;}
   .tile .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600;}
   .tile .val{font-size:26px; font-weight:800; margin:6px 0 2px; letter-spacing:-.5px;}
   .tile .sub{font-size:11px; color:var(--muted); display:flex; align-items:center; gap:4px;}
-  .tile .up{color:var(--green);}
   .tile .warn{color:var(--accent);}
   .tile.wide{grid-column:span 2;}
-  .section-title{
-    font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.8px;
-    font-weight:700; margin:22px 0 10px;
-  }
+  .section-title{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; font-weight:700; margin:22px 0 10px;}
   .section-title:first-child{margin-top:0;}
-  .order-row{display:flex; flex-direction:column; gap:6px; position:relative;}
   .order-top{display:flex; align-items:center; gap:8px; font-size:12px;}
   .order-num{font-weight:700; color:var(--text);}
   .status-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
   .status-dot.new{background:var(--red); box-shadow:0 0 8px var(--red);}
-  .status-dot.work{background:var(--yellow);}
-  .status-dot.done{background:var(--green);}
-  .status-dot.cancel{background:var(--gray);}
+  .status-dot.confirmed{background:var(--yellow);}
+  .status-dot.completed{background:var(--green);}
+  .status-dot.cancelled{background:var(--gray);}
   .status-txt{font-weight:600;}
   .status-txt.new{color:var(--red);}
-  .status-txt.work{color:var(--yellow);}
-  .status-txt.done{color:var(--green);}
-  .status-txt.cancel{color:var(--gray);}
+  .status-txt.confirmed{color:var(--yellow);}
+  .status-txt.completed{color:var(--green);}
+  .status-txt.cancelled{color:var(--gray);}
   .order-time{margin-left:auto; color:var(--muted); font-size:11px;}
   .order-name{font-size:15px; font-weight:600;}
   .order-phone{font-size:13px; color:var(--muted);}
   .order-meta{font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap;}
   .order-meta .price{color:var(--text); font-weight:700;}
-  .order-promo{font-size:11px; color:var(--accent); font-weight:600;}
   .tabs{display:flex; gap:8px; overflow-x:auto; padding:4px 0; margin-bottom:14px; scrollbar-width:none;}
   .tabs::-webkit-scrollbar{display:none;}
-  .tab{
-    background:var(--surface); border:1px solid var(--border);
-    color:var(--muted); padding:8px 14px; border-radius:20px;
-    font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer;
-    transition:all .15s;
-  }
+  .tab{background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:all .15s;}
   .tab.active{background:var(--accent); border-color:var(--accent); color:#000;}
-  .tab .cnt{
-    background:rgba(0,0,0,.1); padding:1px 6px; border-radius:8px;
-    font-size:11px; margin-left:4px;
-  }
-  .tab.active .cnt{background:rgba(0,0,0,.2); color:#000;}
-  .btn{
-    border:none; border-radius:12px; padding:13px 18px;
-    font-weight:700; font-size:14px; cursor:pointer;
-    display:inline-flex; align-items:center; justify-content:center; gap:6px;
-  }
+  .tab .cnt{background:rgba(0,0,0,.1); padding:1px 6px; border-radius:8px; font-size:11px; margin-left:4px;}
+  .btn{border:none; border-radius:12px; padding:13px 18px; font-weight:700; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
   .btn-primary{background:var(--accent); color:#000;}
-  .btn-ghost{background:var(--surface2); color:var(--text);}
   .btn-danger{background:var(--accent-dim); color:var(--red); border:1px solid var(--red);}
   .btn-success{background:var(--green); color:#000;}
   .btn-block{width:100%;}
   .btn-sm{padding:8px 12px; font-size:12px; border-radius:10px;}
-  .btn-row{display:flex; gap:10px;}
-  .field{margin-bottom:14px;}
-  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600;}
-  .input{
-    width:100%; background:var(--surface); border:1px solid var(--border);
-    border-radius:10px; padding:12px 14px; color:var(--text);
-    font-size:14px; font-family:inherit; outline:none;
-  }
-  .input:focus{border-color:var(--accent);}
-  textarea.input{resize:vertical; min-height:70px;}
-  .input-row{display:flex; gap:8px;}
-  .input-row .input{flex:1;}
-  .input-suffix{
-    display:flex; align-items:center; background:var(--surface);
-    border:1px solid var(--border); border-radius:10px; padding-right:14px;
-    color:var(--muted); font-weight:600;
-  }
-  .input-suffix .input{border:none; background:none;}
-  .segmented{
-    display:flex; background:var(--surface); border:1px solid var(--border);
-    border-radius:10px; padding:3px; gap:3px;
-  }
-  .segmented button{
-    flex:1; background:none; border:none; color:var(--muted);
-    padding:9px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
-  }
-  .segmented button.active{background:var(--surface3); color:var(--text);}
-  .chart{
-    height:80px; display:flex; align-items:flex-end; gap:6px; padding:8px 0;
-  }
-  .chart .bar{
-    flex:1; border-radius:4px 4px 0 0; min-height:6px; transition:opacity .15s;
-    cursor:pointer; position:relative;
-  }
-  .chart .bar .val{
-    position:absolute; top:-18px; left:0; right:0; text-align:center;
-    font-size:11px; font-weight:700; color:var(--muted);
-  }
-  .chart-labels{
-    display:flex; gap:6px; margin-top:6px; font-size:10px;
-  }
-  .chart-labels span{flex:1; text-align:center; color:var(--muted);}
-  .promo-code{
-    font-family:"SF Mono",Consolas,monospace; font-size:15px; font-weight:800;
-    letter-spacing:1px;
-  }
-  .promo-discount{color:var(--accent); font-weight:800; margin-left:auto;}
-  .promo-status{font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;}
-  .promo-status.active{background:rgba(51,209,122,.15); color:var(--green);}
-  .promo-status.expired{background:rgba(107,107,118,.15); color:var(--gray);}
-  .promo-status.off{background:rgba(255,59,92,.15); color:var(--red);}
   .product-row{display:flex; gap:12px; align-items:center;}
-  .product-img{
-    width:52px; height:52px; border-radius:10px; background:var(--surface2);
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; flex-shrink:0; border:1px solid var(--border);
-  }
+  .product-img{width:52px; height:52px; border-radius:10px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; border:1px solid var(--border);}
   .product-info{flex:1; min-width:0;}
   .product-name{font-weight:600; font-size:14px; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .product-meta{font-size:12px; color:var(--muted);}
-  .toggle{
-    width:38px; height:22px; border-radius:11px; background:var(--surface3);
-    position:relative; cursor:pointer; transition:background .15s; flex-shrink:0;
-    border:none;
-  }
-  .toggle::after{
-    content:""; position:absolute; width:16px; height:16px; border-radius:50%;
-    background:#fff; top:3px; left:3px; transition:left .15s;
-  }
-  .toggle.on{background:var(--green);}
-  .toggle.on::after{left:19px;}
-  .photo-box{
-    width:100%; aspect-ratio:1; background:var(--surface2);
-    border:2px dashed var(--border); border-radius:var(--radius);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:6px; color:var(--muted); cursor:pointer; margin-bottom:16px;
-    overflow:hidden;
-  }
-  .photo-box img{width:100%; height:100%; object-fit:cover;}
-  .chips{display:flex; gap:8px; flex-wrap:wrap;}
-  .chip{
-    background:var(--surface2); border:1px solid var(--border);
-    color:var(--muted); padding:8px 14px; border-radius:20px;
-    font-size:13px; font-weight:600; cursor:pointer;
-  }
-  .chip.on{background:var(--accent-dim); border-color:var(--accent); color:var(--accent);}
-  .stat-line{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:10px 0; border-bottom:1px solid var(--border); font-size:14px;
-  }
-  .stat-line:last-child{border-bottom:none;}
-  .bar-progress{
-    height:8px; background:var(--surface3); border-radius:4px; overflow:hidden;
-    margin-top:6px;
-  }
-  .bar-progress > div{height:100%; background:var(--accent); border-radius:4px;}
+  .chart{height:80px; display:flex; align-items:flex-end; gap:6px; padding:8px 0;}
+  .chart .bar{flex:1; border-radius:4px 4px 0 0; min-height:6px; transition:opacity .15s; cursor:pointer; position:relative;}
+  .chart .bar .val{position:absolute; top:-18px; left:0; right:0; text-align:center; font-size:11px; font-weight:700; color:var(--muted);}
+  .chart-labels{display:flex; gap:6px; margin-top:6px; font-size:10px;}
+  .chart-labels span{flex:1; text-align:center; color:var(--muted);}
   .muted{color:var(--muted);}
-  .accent{color:var(--accent);}
-  .success{color:var(--green);}
-  .divider{height:1px; background:var(--border); margin:14px 0;}
-  .empty{
-    text-align:center; padding:60px 20px; color:var(--muted);
-    font-size:14px;
-  }
+  .empty{text-align:center; padding:60px 20px; color:var(--muted); font-size:14px;}
   .empty .ico{font-size:42px; margin-bottom:12px; opacity:.5;}
-  .row-actions{display:flex; gap:8px; margin-top:10px;}
-  .kv{display:flex; gap:10px; font-size:14px; padding:7px 0; align-items:center;}
-  .kv .k{color:var(--muted); min-width:24px;}
-  .kv .v{flex:1;}
-  .kv .act{color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; background:none; border:none;}
-  .order-item-row{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;
-  }
-  .order-item-row:last-child{border-bottom:none;}
-  .order-item-row .oimg{width:32px; height:32px; border-radius:6px; background:var(--surface2);
-    display:flex; align-items:center; justify-content:center; font-size:16px;}
-  .order-item-row .oname{flex:1;}
-  .order-item-row .oprice{font-weight:700;}
-  .order-item-row .oqty{color:var(--muted); font-size:12px;}
-  .total-row{display:flex; justify-content:space-between; padding:6px 0; font-size:13px;}
-  .total-row.grand{font-size:16px; font-weight:800; padding-top:10px; margin-top:6px; border-top:1px solid var(--border);}
-  .status-banner{
-    display:flex; align-items:center; gap:10px; padding:12px 14px;
-    border-radius:12px; background:var(--surface); border:1px solid var(--border);
-  }
+  .status-banner{display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; background:var(--surface); border:1px solid var(--border);}
   .status-banner .st{font-weight:700; font-size:14px;}
   .status-banner .actions{margin-left:auto; display:flex; gap:8px;}
-  .sheet{position:fixed; inset:0; z-index:200;}
-  .sheet-bg{position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);}
-  .sheet-panel{
-    position:absolute; bottom:0; left:0; right:0; max-width:430px; margin:0 auto;
-    background:var(--surface2); border-radius:20px 20px 0 0; padding:16px;
-    padding-bottom:calc(16px + env(safe-area-inset-bottom));
-    animation:slideUp .2s;
-  }
-  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-  .sheet-title{font-size:16px; font-weight:700; margin-bottom:4px;}
-  .sheet-sub{font-size:13px; color:var(--muted); margin-bottom:14px;}
-  .sheet-item{
-    padding:14px; border-radius:12px; background:var(--surface3);
-    margin-bottom:8px; font-weight:600; cursor:pointer;
-    display:flex; align-items:center; gap:12px; font-size:14px;
-    border:none; color:var(--text); width:100%; text-align:left;
-  }
-  .sheet-item:active{background:var(--surface);}
-  .sheet-item.danger{color:var(--red);}
-  .sheet-item.cancel{background:transparent; border:1px solid var(--border); justify-content:center; margin-top:8px;}
-  .demo-badge{
-    display:inline-block; font-size:9px; font-weight:700; letter-spacing:.5px;
-    background:var(--surface3); color:var(--muted); padding:2px 6px;
-    border-radius:4px; margin-left:6px; vertical-align:middle;
-    text-transform:uppercase;
-  }
 </style>
 </head>
 <body>
@@ -316,82 +119,47 @@
 </div>
 
 <script>
-// ====================== НАСТРОЙКИ БОТА ======================
 const ADMIN_PASSWORD = "4847"; 
-const ADMIN_USERNAME = "your_manager_nick"; // Твой юзернейм для связи
+const tg = window.Telegram?.WebApp;
 
-// ====================== STATE ======================
-const state = {
+if (tg) { tg.ready(); tg.expand(); }
+
+// Читаем данные из URL (которые прислал бот)
+const urlParams = new URLSearchParams(window.location.search);
+let rawData = urlParams.get('data');
+let state = {
   currentTab: 'home',
   screen: 'home',
   screenData: null,
   ordersTab: 'new',
-  ordersSearch: '',
-  showSearch: false,
-  promoFormType: 'percent',
-  orders: [
-    {id:482913, name:'Иван Петров', phone:'+7 999 123-45-67', tg:'@ivan_petrov', uid:'8488865562',
-     status:'new', time:'5 мин назад', method:'Встреча', place:'ТЦ Галерея, 2 этаж',
-     pay:'При получении', promo:'SMOKY10', promoDisc:0, comment:'',
-     items:[{img:'🧴',name:'Жидкость X',qty:2,price:400},{img:'⚙️',name:'Испаритель Y',qty:1,price:440}]},
-    {id:482912, name:'Мария Ковалёва', phone:'+7 912 456-78-90', tg:'@maria_k', uid:'8488865563',
-     status:'work', time:'12 мин назад', method:'Самовывоз', place:'ТЦ Галерея, 1 этаж',
-     pay:'Онлайн', promo:'', promoDisc:0, comment:'',
-     items:[{img:'💨',name:'Девайс VooPoo Drag X',qty:1,price:3200},{img:'🧴',name:'Жидкость Mango Ice',qty:1,price:500}]}
-  ],
-  products: [
-    {id:1, img:'🧴', name:'Жидкость Mango Ice', price:500, oldPrice:700, cat:'Жидкости', stock:24, on:true, tags:['HIT'], desc:'Сочный манго со льдом'}
-  ]
+  orders: [],
+  products: []
 };
 
-const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
-
-let productFilter = 'Все';
-let statsPeriod = 'week';
-
-// ====================== ОТПРАВКА В БОТ ======================
-function sendToBot(command, data = {}) {
-    if (!tg) {
-        alert("Эта кнопка работает только внутри Telegram!");
-        return;
-    }
-    const payload = {
-        action: "admin_panel",
-        password: ADMIN_PASSWORD,
-        command: command,
-        ...data
-    };
+if (rawData) {
     try {
-        tg.sendData(JSON.stringify(payload));
-    } catch(e) {
-        alert("Ошибка отправки: " + e.message);
-    }
+        const parsed = JSON.parse(decodeURIComponent(rawData));
+        state.orders = parsed.orders || [];
+        state.products = parsed.products || [];
+    } catch(e) { console.error("Ошибка парсинга данных", e); }
 }
 
-// ====================== HELPERS ======================
+function sendToBot(command, data = {}) {
+    if (!tg) return alert("Работает только в Telegram");
+    const payload = { action: "admin_panel", password: ADMIN_PASSWORD, command, ...data };
+    try { tg.sendData(JSON.stringify(payload)); } catch(e) { alert("Ошибка: " + e.message); }
+}
+
 const $ = (s,el=document) => el.querySelector(s);
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = n => n.toLocaleString('ru-RU') + ' ₽';
-const orderSubtotal = o => o.items.reduce((s,i)=>s+i.qty*i.price,0);
-const orderTotal = o => orderSubtotal(o) - (o.promoDisc||0);
-const orderCount = o => o.items.reduce((s,i)=>s+i.qty,0);
-const fmtStatus = s => ({new:'Новый',work:'В работе',done:'Выполнен',cancel:'Отменён'}[s]);
-const statusColor = s => ({new:'var(--red)',work:'var(--yellow)',done:'var(--green)',cancel:'var(--gray)'}[s]);
+const fmtStatus = s => ({new:'Новый',confirmed:'В работе',completed:'Выполнен',cancelled:'Отменён'}[s] || s);
+const statusColor = s => ({new:'var(--red)',confirmed:'var(--yellow)',completed:'var(--green)',cancelled:'var(--gray)'}[s]);
 
 function newOrdersCount(){ return state.orders.filter(o=>o.status==='new').length; }
-function activeOrdersCount(){ return state.orders.filter(o=>o.status==='new'||o.status==='work').length; }
+function activeOrdersCount(){ return state.orders.filter(o=>o.status==='new'||o.status==='confirmed').length; }
+function getStatusBreakdown(){ return { new: state.orders.filter(o=>o.status==='new').length, confirmed: state.orders.filter(o=>o.status==='confirmed').length, completed: state.orders.filter(o=>o.status==='completed').length, cancelled: state.orders.filter(o=>o.status==='cancelled').length }; }
 
-function getStatusBreakdown(){
-  return {
-    new: state.orders.filter(o=>o.status==='new').length,
-    work: state.orders.filter(o=>o.status==='work').length,
-    done: state.orders.filter(o=>o.status==='done').length,
-    cancel: state.orders.filter(o=>o.status==='cancel').length
-  };
-}
-
-// ====================== NAV ======================
 const tabs = [
   {id:'home', ico:'🏠', label:'Главная'},
   {id:'orders', ico:'📦', label:'Заказы'},
@@ -411,23 +179,10 @@ function renderNav(){
   `).join('');
 }
 
-function goTab(id){
-  state.currentTab = id;
-  state.screen = id;
-  state.screenData = null;
-  state.showSearch = false;
-  render();
-}
-
-function goScreen(screen, data=null){
-  state.screen = screen;
-  state.screenData = data;
-  render();
-}
-
+function goTab(id){ state.currentTab = id; state.screen = id; state.screenData = null; render(); }
+function goScreen(screen, data=null){ state.screen = screen; state.screenData = data; render(); }
 function goBack(){ goTab(state.currentTab); }
 
-// ====================== RENDER ======================
 function render(){
   renderNav();
   const el = $('#screen');
@@ -436,140 +191,72 @@ function render(){
   else if(s==='orders') el.innerHTML = renderOrders();
   else if(s==='order') el.innerHTML = renderOrder(state.screenData);
   else if(s==='products') el.innerHTML = renderProducts();
-  else if(s==='product') el.innerHTML = renderProductEdit(state.screenData);
   else if(s==='stats') el.innerHTML = renderStats();
   window.scrollTo(0,0);
   el.scrollTop = 0;
 }
 
-// ====================== SCREEN: HOME ======================
 function renderHome(){
   const newO = state.orders.filter(o=>o.status==='new');
-  const bd = getStatusBreakdown();
-  const maxBd = Math.max(bd.new, bd.work, bd.done, bd.cancel, 1);
-  const barColors = {new:'var(--red)', work:'var(--yellow)', done:'var(--green)', cancel:'var(--gray)'};
-
   return `
-    <div class="header">
-      <div class="brand">⚓ GALLEON <span>ADMIN</span></div>
-      <div class="right"><div class="avatar">A</div></div>
-    </div>
+    <div class="header"><div class="brand">⚓ GALLEON <span>ADMIN</span></div><div class="right"><div class="avatar">A</div></div></div>
     <div class="content">
       <div class="tiles">
-        <div class="tile">
-          <div class="lbl">Новые</div>
-          <div class="val">${newO.length}</div>
-        </div>
-        <div class="tile">
-          <div class="lbl">В работе</div>
-          <div class="val">${activeOrdersCount()}</div>
-        </div>
-        <div class="tile wide">
-          <div class="lbl">Выручка (демо)</div>
-          <div class="val">${money(state.orders.reduce((s,o)=>s+orderTotal(o),0))}</div>
-        </div>
+        <div class="tile"><div class="lbl">Новые</div><div class="val">${newO.length}</div></div>
+        <div class="tile"><div class="lbl">В работе</div><div class="val">${activeOrdersCount()}</div></div>
+        <div class="tile wide"><div class="lbl">Выручка</div><div class="val">${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div></div>
       </div>
-
       <div class="section-title">Новые заказы</div>
       ${newO.length ? newO.map(o=>`
         <div class="card clickable" onclick="openOrder(${o.id})">
-          <div class="order-top">
-            <span class="order-num">#${o.id}</span>
-            <span class="order-num" style="font-weight:500;color:var(--muted)">${escapeHtml(o.name)}</span>
-            <span class="order-time">${o.time}</span>
-          </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
-            <span class="order-phone">${o.phone}</span>
-            <span style="font-weight:800;">${money(orderTotal(o))}</span>
-          </div>
+          <div class="order-top"><span class="order-num">#${o.id}</span><span class="order-num" style="font-weight:500;color:var(--muted)">${escapeHtml(o.name)}</span></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;"><span class="order-phone">${o.phone}</span><span style="font-weight:800;">${money(o.total)}</span></div>
         </div>
       `).join('') : `<div class="empty"><div class="ico">✨</div>Новых заказов нет</div>`}
     </div>
   `;
 }
 
-// ====================== SCREEN: ORDERS ======================
 function renderOrders(){
   let filtered = state.orders.filter(o=>o.status===state.ordersTab);
-  const cnt = {
-    new: state.orders.filter(o=>o.status==='new').length,
-    work: state.orders.filter(o=>o.status==='work').length,
-    done: state.orders.filter(o=>o.status==='done').length,
-    cancel: state.orders.filter(o=>o.status==='cancel').length,
-  };
-
+  const cnt = { new: state.orders.filter(o=>o.status==='new').length, confirmed: state.orders.filter(o=>o.status==='confirmed').length, completed: state.orders.filter(o=>o.status==='completed').length };
   return `
     <div class="header"><div class="title">Заказы</div></div>
     <div class="content">
       <div class="tabs">
         <button class="tab ${state.ordersTab==='new'?'active':''}" onclick="setOrdersTab('new')">Новые${cnt.new?`<span class="cnt">${cnt.new}</span>`:''}</button>
-        <button class="tab ${state.ordersTab==='work'?'active':''}" onclick="setOrdersTab('work')">В работе</button>
-        <button class="tab ${state.ordersTab==='done'?'active':''}" onclick="setOrdersTab('done')">Выполнено</button>
+        <button class="tab ${state.ordersTab==='confirmed'?'active':''}" onclick="setOrdersTab('confirmed')">В работе${cnt.confirmed?`<span class="cnt">${cnt.confirmed}</span>`:''}</button>
+        <button class="tab ${state.ordersTab==='completed'?'active':''}" onclick="setOrdersTab('completed')">Выполнено</button>
       </div>
-
       ${filtered.length ? filtered.map(o=>`
         <div class="card clickable" onclick="openOrder(${o.id})">
-          <div class="order-top">
-            <span class="status-dot ${o.status}"></span>
-            <span class="order-num">#${o.id}</span>
-            <span class="status-txt ${o.status}">${fmtStatus(o.status)}</span>
-            <span class="order-time">${o.time}</span>
-          </div>
+          <div class="order-top"><span class="status-dot ${o.status}"></span><span class="order-num">#${o.id}</span><span class="status-txt ${o.status}">${fmtStatus(o.status)}</span></div>
           <div class="order-name" style="margin-top:8px;">${escapeHtml(o.name)}</div>
-          <div class="order-meta" style="margin-top:8px;">
-            <span class="price">${money(orderTotal(o))}</span>
-          </div>
+          <div class="order-meta" style="margin-top:8px;"><span class="price">${money(o.total)}</span></div>
         </div>
       `).join('') : `<div class="empty"><div class="ico">📭</div>Нет заказов</div>`}
     </div>
   `;
 }
-
 function setOrdersTab(t){ state.ordersTab = t; render(); }
 function openOrder(id){ goScreen('order', id); }
 
-// ====================== SCREEN: ORDER DETAIL ======================
 function renderOrder(id){
   const o = state.orders.find(x=>x.id===id);
   if(!o) return `<div class="content"><div class="empty">Заказ не найден</div></div>`;
-  const subtotal = orderSubtotal(o);
-  const total = subtotal - (o.promoDisc||0);
-
   return `
-    <div class="header">
-      <button class="back" onclick="goBack()">←</button>
-      <div class="title">Заказ #${o.id}</div>
-    </div>
+    <div class="header"><button class="back" onclick="goBack()">←</button><div class="title">Заказ #${o.id}</div></div>
     <div class="content">
       <div class="status-banner" style="margin-bottom:14px;">
-        <span class="status-dot ${o.status}"></span>
-        <span class="st" style="color:${statusColor(o.status)}">${fmtStatus(o.status)}</span>
+        <span class="status-dot ${o.status}"></span><span class="st" style="color:${statusColor(o.status)}">${fmtStatus(o.status)}</span>
         <div class="actions">
-          ${o.status==='new' ? `
-            <button class="btn btn-primary btn-sm" onclick="changeBotStatus(${o.id}, 'confirmed')">Принять</button>
-            <button class="btn btn-danger btn-sm" onclick="changeBotStatus(${o.id}, 'cancelled')">Отменить</button>
-          ` : o.status==='work' ? `
-            <button class="btn btn-success btn-sm" onclick="changeBotStatus(${o.id}, 'completed')">Выполнен</button>
-          ` : ''}
+          ${o.status==='new' ? `<button class="btn btn-primary btn-sm" onclick="changeBotStatus(${o.id}, 'confirmed')">Принять</button><button class="btn btn-danger btn-sm" onclick="changeBotStatus(${o.id}, 'cancelled')">Отменить</button>` : o.status==='confirmed' ? `<button class="btn btn-success btn-sm" onclick="changeBotStatus(${o.id}, 'completed')">Выполнен</button>` : ''}
         </div>
       </div>
-
       <div class="card">
         <div class="kv"><span class="k">👤</span><span class="v">${escapeHtml(o.name)}</span></div>
         <div class="kv"><span class="k">📞</span><span class="v">${o.phone}</span></div>
-        <div class="kv"><span class="k">💬</span><span class="v">${o.tg}</span></div>
-      </div>
-
-      <div class="section-title">Товары</div>
-      <div class="card">
-        ${o.items.map(i=>`
-          <div class="order-item-row">
-            <div class="oimg">${i.img}</div>
-            <div class="oname">${escapeHtml(i.name)} <span class="oqty">×${i.qty}</span></div>
-            <div class="oprice">${money(i.price*i.qty)}</div>
-          </div>
-        `).join('')}
-        <div class="total-row grand"><span>ИТОГО</span><span>${money(total)}</span></div>
+        <div class="kv"><span class="k">💰</span><span class="v">Итого: <b>${money(o.total)}</b></span></div>
       </div>
     </div>
   `;
@@ -577,140 +264,66 @@ function renderOrder(id){
 
 function changeBotStatus(orderId, status) {
     sendToBot("change_status", { order_id: orderId, status: status });
-    
     const o = state.orders.find(x=>x.id===orderId);
-    if(o) {
-        if(status === 'confirmed') o.status = 'work';
-        if(status === 'completed') o.status = 'done';
-        if(status === 'cancelled') o.status = 'cancel';
-    }
+    if(o) o.status = status;
     render();
 }
 
-// ====================== SCREEN: PRODUCTS ======================
 function renderProducts(){
-  const cats = ['Все','Жидкости','Девайсы','Испарители'];
+  const cats = ['Все', ...new Set(state.products.map(p => p.cat))];
   const filtered = state.products.filter(p=>productFilter==='Все' || p.cat===productFilter);
-
   return `
-    <div class="header">
-      <div class="title">Товары</div>
-      <div class="right"><button class="btn-add" onclick="goScreen('product',{id:null})">+ Добавить</button></div>
-    </div>
+    <div class="header"><div class="title">Товары</div><div class="right"><button class="btn-add" onclick="tg.close(); tg.sendData(JSON.stringify({action:'go_to_bot_add'}))">+ Добавить</button></div></div>
     <div class="content">
-      <div class="tabs">
-        ${cats.map(c=>`<button class="tab ${productFilter===c?'active':''}" onclick="setProductFilter('${c}')">${c}</button>`).join('')}
-      </div>
-
+      <div class="tabs">${cats.map(c=>`<button class="tab ${productFilter===c?'active':''}" onclick="setProductFilter('${c}')">${c}</button>`).join('')}</div>
       ${filtered.map(p=>`
-        <div class="card clickable" onclick="goScreen('product',{id:${p.id}})">
+        <div class="card clickable" onclick="deleteProduct(${p.id})">
           <div class="product-row">
-            <div class="product-img">${p.img}</div>
+            <div class="product-img">📦</div>
             <div class="product-info">
               <div class="product-name">${escapeHtml(p.name)}</div>
-              <div class="product-meta">${money(p.price)} · ${p.cat}</div>
+              <div class="product-meta">${money(p.price)} · ${p.cat} · ${p.stock} шт</div>
             </div>
+            <div style="color:var(--red); font-size:20px;">🗑</div>
           </div>
         </div>
       `).join('')}
     </div>
   `;
 }
+let productFilter = 'Все';
 function setProductFilter(f){ productFilter=f; render(); }
 
-// ====================== SCREEN: PRODUCT EDIT ======================
-function renderProductEdit(data){
-  const isNew = !data || !data.id;
-  const p = isNew
-    ? {id:null, img:'📷', name:'', price:'', oldPrice:'', cat:'Жидкости', stock:'', on:true, tags:[], desc:''}
-    : state.products.find(x=>x.id===data.id);
-  if(!p) return `<div class="content"><div class="empty">Не найдено</div></div>`;
-
-  return `
-    <div class="header">
-      <button class="back" onclick="goBack()">←</button>
-      <div class="title">${isNew?'Новый товар':'Редактирование'}</div>
-    </div>
-    <div class="content">
-      <div class="field"><label>Название</label>
-        <input class="input" id="pName" value="${escapeHtml(p.name)}" placeholder="Жидкость Mango Ice">
-      </div>
-      <div class="field"><label>Категория</label>
-        <select class="input" id="pCat">
-          ${['Жидкости','Девайсы','Испарители'].map(c=>`<option ${p.cat===c?'selected':''}>${c}</option>`).join('')}
-        </select>
-      </div>
-      <div class="field"><label>Цена</label>
-        <div class="input-suffix"><input class="input" id="pPrice" type="number" value="${p.price}" placeholder="500"><span>₽</span></div>
-      </div>
-      <div class="field"><label>Описание</label>
-        <textarea class="input" id="pDesc" placeholder="Сочный манго...">${escapeHtml(p.desc||'')}</textarea>
-      </div>
-      <div class="field"><label>Остаток на складе</label>
-        <div class="input-suffix"><input class="input" id="pStock" type="number" value="${p.stock}" placeholder="24"><span>шт</span></div>
-      </div>
-
-      <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveProduct(${p.id})">СОХРАНИТЬ</button>
-    </div>
-  `;
+function deleteProduct(id) {
+    if(confirm("Удалить этот товар?")) {
+        sendToBot("delete_product", { id: id });
+    }
 }
 
-function saveProduct(id){
-  const name = $('#pName')?.value || 'Новый товар';
-  const price = parseInt($('#pPrice')?.value) || 0;
-  const stock = parseInt($('#pStock')?.value) || 0;
-  const desc = $('#pDesc')?.value || '';
-  const cat = $('#pCat')?.value || 'Жидкости';
-
-  if(id){
-    // Отправляем обновление
-    sendToBot("update_product", { id, name, price, stock, desc, cat });
-  } else {
-    // Отправляем создание
-    sendToBot("add_product", { name, price, stock, desc, cat });
-  }
-}
-
-// ====================== SCREEN: STATS ======================
 function renderStats(){
   const bd = getStatusBreakdown();
-  const maxBd = Math.max(bd.new, bd.work, bd.done, bd.cancel, 1);
-  const barColors = {new:'var(--red)', work:'var(--yellow)', done:'var(--green)', cancel:'var(--gray)'};
-
+  const maxBd = Math.max(bd.new, bd.confirmed, bd.completed, bd.cancelled, 1);
+  const barColors = {new:'var(--red)', confirmed:'var(--yellow)', completed:'var(--green)', cancelled:'var(--gray)'};
   return `
-    <div class="header">
-      <div class="title">Статистика</div>
-    </div>
+    <div class="header"><div class="title">Статистика</div></div>
     <div class="content">
       <div class="tiles">
-        <div class="tile">
-          <div class="lbl">Всего заказов</div>
-          <div class="val" style="font-size:22px;">${state.orders.length}</div>
-        </div>
-        <div class="tile">
-          <div class="lbl">Выручка</div>
-          <div class="val" style="font-size:22px;">${money(state.orders.reduce((s,o)=>s+orderTotal(o),0))}</div>
-        </div>
+        <div class="tile"><div class="lbl">Всего заказов</div><div class="val">${state.orders.length}</div></div>
+        <div class="tile"><div class="lbl">Выручка</div><div class="val">${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div></div>
       </div>
-
       <div class="section-title">Заказы по статусам</div>
       <div class="card">
         <div class="chart">
-          ${['new','work','done','cancel'].map(k=>`
-            <div class="bar" style="height:${(bd[k]/maxBd)*100}%; background:${barColors[k]}" title="${fmtStatus(k)}: ${bd[k]}">
-              <div class="val">${bd[k]}</div>
-            </div>
+          ${['new','confirmed','completed','cancelled'].map(k=>`
+            <div class="bar" style="height:${(bd[k]/maxBd)*100}%; background:${barColors[k]}"><div class="val">${bd[k]}</div></div>
           `).join('')}
         </div>
-        <div class="chart-labels">
-          <span>Новые</span><span>В работе</span><span>Вып.</span><span>Отменено</span>
-        </div>
+        <div class="chart-labels"><span>Новые</span><span>В работе</span><span>Вып.</span><span>Отменено</span></div>
       </div>
     </div>
   `;
 }
 
-// ====================== BOOT ======================
 render();
 </script>
 </body>
