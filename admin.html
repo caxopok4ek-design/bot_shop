@@ -127,10 +127,6 @@ const tg = window.Telegram?.WebApp;
 
 if (tg) { tg.ready(); tg.expand(); }
 
-// Читаем данные из ссылки
-const urlParams = new URLSearchParams(window.location.search);
-let rawData = urlParams.get('data');
-
 let state = {
   currentTab: 'home',
   screen: 'home',
@@ -140,12 +136,21 @@ let state = {
   products: []
 };
 
-if (rawData) {
+// Загружаем данные из файла panel_data.json
+async function loadData() {
     try {
-        const parsed = JSON.parse(decodeURIComponent(rawData));
-        state.orders = parsed.orders || [];
-        state.products = parsed.products || [];
-    } catch(e) { console.error("Ошибка парсинга", e); }
+        const res = await fetch(`panel_data.json?t=${Date.now()}`);
+        if (res.ok) {
+            const parsed = await res.json();
+            state.orders = parsed.orders || [];
+            state.products = parsed.products || [];
+            render();
+        } else {
+            document.getElementById('screen').innerHTML = '<div class="empty">Нет данных. Нажми в боте "Открыть веб-панель" заново.</div>';
+        }
+    } catch(e) {
+        document.getElementById('screen').innerHTML = '<div class="empty">Ошибка загрузки данных.</div>';
+    }
 }
 
 function sendToBot(command, data = {}) {
@@ -327,7 +332,8 @@ function renderStats(){
   `;
 }
 
-render();
+document.getElementById('screen').innerHTML = '<div class="empty">Загрузка...</div>';
+loadData();
 </script>
 </body>
 </html>
