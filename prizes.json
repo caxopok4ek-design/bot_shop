@@ -1,0 +1,12 @@
+{
+  "daily": [
+    {"id": 1, "type": "percent", "name": "Скидка 5%", "desc": "На любой заказ", "value": 5, "chance": 40, "duration": 7, "icon": "🏷️"},
+    {"id": 2, "type": "bonus", "name": "100 Бонусов", "desc": "На ваш счет", "value": 100, "chance": 60, "duration": 0, "icon": "🪙"}
+  ],
+  "case1": [
+    {"id": 3, "type": "percent", "name": "Скидка 10%", "desc": "От 3000 рублей", "value": 10, "chance": 30, "duration": 5, "icon": "🏷️"},
+    {"id": 4, "type": "product", "name": "Бесплатный товар", "desc": "Любая жидкость", "value": 0, "chance": 10, "duration": 0, "icon": "📦"}
+  ],
+  "case5": [],
+  "case10": []
+}
