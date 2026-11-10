@@ -127,9 +127,6 @@ const tg = window.Telegram?.WebApp;
 
 if (tg) { tg.ready(); tg.expand(); }
 
-const urlParams = new URLSearchParams(window.location.search);
-let rawData = urlParams.get('data');
-
 let state = {
   currentTab: 'home',
   screen: 'home',
@@ -139,12 +136,22 @@ let state = {
   products: []
 };
 
-if (rawData) {
+async function loadData() {
+    const screenEl = document.getElementById('screen');
+    screenEl.innerHTML = '<div class="empty">Загрузка...</div>';
     try {
-        const parsed = JSON.parse(decodeURIComponent(rawData));
-        state.orders = parsed.orders || [];
-        state.products = parsed.products || [];
-    } catch(e) { console.error("Ошибка парсинга", e); }
+        const res = await fetch(`panel_data.json?t=${Date.now()}`);
+        if (res.ok) {
+            const parsed = await res.json();
+            state.orders = parsed.orders || [];
+            state.products = parsed.products || [];
+            render();
+        } else {
+            screenEl.innerHTML = '<div class="empty">Нет данных. Нажми в боте "Открыть веб-панель" заново.</div>';
+        }
+    } catch(e) {
+        screenEl.innerHTML = '<div class="empty">Ошибка загрузки данных.</div>';
+    }
 }
 
 function sendToBot(command, data = {}) {
@@ -202,7 +209,13 @@ function render(){
 function renderHome(){
   const newO = state.orders.filter(o=>o.status==='new');
   return `
-    <div class="header"><div class="brand">⚓ GALLEON <span>ADMIN</span></div><div class="right"><div class="avatar">A</div></div></div>
+    <div class="header">
+      <div class="brand">⚓ GALLEON <span>ADMIN</span></div>
+      <div class="right">
+        <button class="icon-btn" onclick="loadData()" title="Обновить">🔄</button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
     <div class="content">
       <div class="tiles">
         <div class="tile"><div class="lbl">Новые</div><div class="val">${newO.length}</div></div>
@@ -296,14 +309,11 @@ function renderProducts(){
   `;
 }
 function setProductFilter(f){ productFilter=f; render(); }
-
 function deleteProduct(id) {
     if(confirm("Удалить этот товар?")) {
         sendToBot("delete_product", { id: id });
-        // Мгновенно убираем из интерфейса
         state.products = state.products.filter(p => p.id !== id);
         render();
-        // Уведомляем и ждем
         alert("Товар удален! Подожди 1-2 минуты, пока GitHub обновит данные.");
     }
 }
@@ -332,7 +342,7 @@ function renderStats(){
   `;
 }
 
-render();
+loadData();
 </script>
 </body>
 </html>
