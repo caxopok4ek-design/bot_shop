@@ -292,10 +292,14 @@ function renderPromos(){
         <input class="input" id="promoCode" placeholder="Код (напр. GALLEON10)">
         <input class="input" id="promoDiscount" type="number" placeholder="Скидка %">
         <input class="input" id="promoDays" type="number" placeholder="Срок действия (дней, 0 = бессрочно)">
-        <select class="input" id="promoOneTime">
-          <option value="true">Одноразовый (1 клиент)</option>
-          <option value="false">Многоразовый</option>
+        
+        <select class="input" id="promoTypeSelect" onchange="togglePromoLimit()">
+          <option value="one_time">Одноразовый (1 клиент)</option>
+          <option value="multi">Многоразовый</option>
         </select>
+        
+        <input class="input hidden" id="promoLimit" type="number" placeholder="Сколько раз можно активировать (напр. 50)" style="display:none;">
+        
         <button class="btn btn-primary" onclick="createPromo()">Создать</button>
       </div>
       
@@ -307,15 +311,39 @@ function renderPromos(){
   `;
 }
 
+function togglePromoLimit() {
+    const type = document.getElementById('promoTypeSelect').value;
+    const limitInput = document.getElementById('promoLimit');
+    if (type === 'multi') {
+        limitInput.style.display = 'block';
+    } else {
+        limitInput.style.display = 'none';
+        limitInput.value = '';
+    }
+}
+
 function createPromo() {
     const code = document.getElementById('promoCode').value.trim().toUpperCase();
     const discount = parseInt(document.getElementById('promoDiscount').value) || 0;
     const days = parseInt(document.getElementById('promoDays').value) || 0;
-    const isOneTime = document.getElementById('promoOneTime').value === 'true';
+    const type = document.getElementById('promoTypeSelect').value;
+    
+    let limit = 1;
+    if (type === 'multi') {
+        limit = parseInt(document.getElementById('promoLimit').value);
+        if (!limit || limit <= 0) return alert("Укажите, сколько раз можно использовать промокод!");
+    }
     
     if (!code || discount <= 0) return alert("Заполните код и скидку!");
     
-    sendToBot("create_promo", { code, discount, days, is_one_time: isOneTime });
+    sendToBot("create_promo", { 
+        code, 
+        discount, 
+        days, 
+        limit, 
+        is_one_time: type === 'one_time' 
+    });
+    
     alert("Промокод создан! Сайт обновится через 1-2 минуты.");
     goTab('home');
 }
