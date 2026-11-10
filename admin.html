@@ -1,170 +1,54 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>GALLEON Admin</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-  :root{
-    --bg:#0a0a0c; --surface:#16161a; --surface2:#1f1f24; --surface3:#26262d;
-    --border:#2a2a30; --text:#f5f5f7; --muted:#8a8a94; --muted2:#5a5a64;
-    --accent:#ff8c68; --accent-dim:rgba(255,140,104,0.2);
-    --green:#4ade80; --yellow:#f5c542; --red:#ff3b5c; --gray:#6b6b76;
-    --radius:14px;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;height:100%;}
-  body{
-    background:#050506;
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
-    color:var(--text);
-    display:flex; justify-content:center;
-    min-height:100vh;
-  }
-  #app{
-    width:100%; max-width:430px; min-height:100vh;
-    background:var(--bg);
-    display:flex; flex-direction:column;
-    position:relative;
-    box-shadow:0 0 40px rgba(0,0,0,.6);
-  }
-  .header{
-    position:sticky; top:0; z-index:50;
-    background:rgba(10,10,12,.92);
-    backdrop-filter:blur(20px);
-    padding:14px 16px;
-    display:flex; align-items:center; gap:12px;
-    border-bottom:1px solid var(--border);
-    min-height:56px;
-  }
-  .header .title{font-size:17px; font-weight:700; flex:1;}
-  .header .brand{font-size:15px; font-weight:800; letter-spacing:.5px; flex:1;}
-  .header .brand span{color:var(--accent);}
-  .header .right{display:flex; align-items:center; gap:10px;}
-  .avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#ff8c68,#ff5e3a); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#000;}
-  .icon-btn{background:var(--surface2); border:none; color:var(--text); width:36px; height:36px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px;}
-  .content{flex:1; padding:16px; padding-bottom:96px; overflow-y:auto;}
-  .nav{position:fixed; bottom:0; left:0; right:0; max-width:430px; margin:0 auto; background:rgba(16,16,20,.96); backdrop-filter:blur(20px); border-top:1px solid var(--border); display:flex; padding:8px 0 calc(8px + env(safe-area-inset-bottom)); z-index:60;}
-  .nav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; color:var(--muted2); font-size:10px; font-weight:600; cursor:pointer; padding:4px; position:relative;}
-  .nav-item .ico{font-size:20px; line-height:1;}
-  .nav-item.active{color:var(--accent);}
-  .card{background:var(--surface); border-radius:var(--radius); padding:14px; border:1px solid var(--border); margin-bottom:10px;}
-  .tabs{display:flex; gap:8px; overflow-x:auto; padding:4px 0; margin-bottom:14px; scrollbar-width:none;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab{background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer;}
-  .tab.active{background:var(--accent); border-color:var(--accent); color:#000;}
-  .btn{border:none; border-radius:12px; padding:13px 18px; font-weight:700; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; width:100%;}
-  .btn-primary{background:var(--accent); color:#000;}
-  .btn-danger{background:var(--accent-dim); color:var(--red); border:1px solid var(--red);}
-  .btn-sm{padding:8px 12px; font-size:12px; border-radius:10px; width:auto;}
-  .input{width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px; color:#fff; font-size:14px; outline:none; margin-bottom:10px;}
-  .input:focus{border-color:var(--accent);}
-  .empty{text-align:center; padding:60px 20px; color:var(--muted); font-size:14px;}
-</style>
-</head>
-<body>
-<div id="app">
-  <div id="screen"></div>
-  <nav class="nav" id="nav"></nav>
-</div>
+let PRIZES = { daily: [], case1: [], case5: [], case10: [] };
 
-<script>
-const ADMIN_PASSWORD = "4847"; 
-const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
-
-let state = {
-  currentTab: 'home',
-  screen: 'home',
-  ordersTab: 'new',
-  orders: [],
-  products: [],
-  prizes: { daily: [], case1: [], case5: [], case10: [] },
-  activeCase: 'daily'
-};
-
-async function loadData() {
-    const screenEl = document.getElementById('screen');
-    screenEl.innerHTML = '<div class="empty">Загрузка...</div>';
+async function loadPrizes() {
     try {
-        const [resData, resPrizes] = await Promise.all([
-            fetch(`panel_data.json?t=${Date.now()}`),
-            fetch(`prizes.json?t=${Date.now()}`)
-        ]);
-        if (resData.ok) {
-            const parsed = await resData.json();
-            state.orders = parsed.orders || [];
-            state.products = parsed.products || [];
+        const res = await fetch('prizes.json?t=' + Date.now());
+        if (res.ok) PRIZES = await res.json();
+    } catch(e) { console.error(e); }
+}
+loadPrizes();
+
+// ... (Остальной твой код, где открываются кейсы)
+
+function openCaseReward(type) {
+    if (!userCases[type] || userCases[type].count <= 0) return;
+    userCases[type].count--;
+    saveCases(); renderCasesUI();
+
+    const modal = document.getElementById('case-modal');
+    if (!modal) return;
+
+    modal.classList.add('show');
+    document.getElementById('modal-case-title').innerText = 'Открываем сундук...';
+    document.getElementById('modal-case-prize').innerText = '🎰';
+    document.getElementById('modal-case-text').innerText = 'Крутим барабан...';
+    document.getElementById('modal-case-btn').style.display = 'none';
+
+    setTimeout(() => {
+        const drops = PRIZES[type] || [];
+        if (drops.length === 0) {
+            alert("В этом кейсе пока нет призов!");
+            return;
         }
-        if (resPrizes.ok) {
-            state.prizes = await resPrizes.json();
+
+        // Выбор приза по шансу
+        const totalChance = drops.reduce((s, p) => s + p.chance, 0);
+        let rand = Math.random() * totalChance;
+        let prize = drops[0];
+        for (let p of drops) {
+            if (rand < p.chance) { prize = p; break; }
+            rand -= p.chance;
         }
-        render();
-    } catch(e) {
-        screenEl.innerHTML = '<div class="empty">Ошибка загрузки данных.</div>';
-    }
+
+        document.getElementById('modal-case-prize').innerText = prize.icon || '🎁';
+        document.getElementById('modal-case-title').innerText = 'Ваша награда!';
+        document.getElementById('modal-case-text').innerText = prize.name + "\n" + prize.desc;
+        
+        const btn = document.getElementById('modal-case-btn');
+        btn.style.display = 'block';
+        btn.onclick = () => {
+            closeModal('case-modal');
+            showToast(`Вы получили: ${prize.name}`);
+        };
+    }, 1500);
 }
-
-function sendToBot(command, data = {}) {
-    if (!tg) return alert("Работает только в Telegram");
-    const payload = { action: "admin_panel", password: ADMIN_PASSWORD, command, ...data };
-    try { tg.sendData(JSON.stringify(payload)); } catch(e) { alert("Ошибка: " + e.message); }
-}
-
-const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money = n => n.toLocaleString('ru-RU') + ' ₽';
-
-const tabs = [
-  {id:'home', ico:'🏠', label:'Главная'},
-  {id:'orders', ico:'📦', label:'Заказы'},
-  {id:'products', ico:'🛒', label:'Товары'},
-  {id:'prizes', ico:'🎁', label:'Кейсы'},
-];
-
-function renderNav(){
-  const nav = document.getElementById('nav');
-  nav.innerHTML = tabs.map(t=>`
-    <button class="nav-item ${state.currentTab===t.id?'active':''}" onclick="goTab('${t.id}')">
-      <span class="ico">${t.ico}</span>
-      <span>${t.label}</span>
-    </button>
-  `).join('');
-}
-
-function goTab(id){ state.currentTab = id; state.screen = id; render(); }
-
-function render(){
-  renderNav();
-  const el = document.getElementById('screen');
-  const s = state.screen;
-  if(s==='home') el.innerHTML = renderHome();
-  else if(s==='orders') el.innerHTML = renderOrders();
-  else if(s==='products') el.innerHTML = renderProducts();
-  else if(s==='prizes') el.innerHTML = renderPrizes();
-  window.scrollTo(0,0);
-}
-
-function renderHome(){
-  const newO = state.orders.filter(o=>o.status==='new');
-  return `
-    <div class="header"><div class="brand">⚓ GALLEON <span>ADMIN</span></div><div class="right"><button class="icon-btn" onclick="loadData()">🔄</button></div></div>
-    <div class="content">
-      <div class="card"><b>Новые заказы:</b> ${newO.length}</div>
-      <div class="card"><b>В работе:</b> ${state.orders.filter(o=>o.status==='confirmed').length}</div>
-      <div class="card"><b>Выручка:</b> ${money(state.orders.reduce((s,o)=>s+(o.total||0),0))}</div>
-    </div>
-  `;
-}
-
-function renderOrders(){
-  let filtered = state.orders.filter(o=>o.status===state.ordersTab);
-  return `
-    <div class="header"><div class="title">Заказы</div></div>
-    <div class="content">
-      <div class="tabs">
-        <button class="tab ${state.ordersTab==='new'?'active':''}" onclick="setOrdersTab('new')">Новые</button>
-        <button class="tab ${state.ordersTab==='confirmed'?'active':''}" onclick="setOrdersTab('confirmed')">В работе</button>
-      </div>
-      ${filtered.length ? filtered.map(o=>`
-        <div class="
