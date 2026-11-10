@@ -7,7 +7,8 @@
     "category": "жижа",
     "tag": "NEW",
     "img": "assets/prod_1406_AgACAg.jpg",
-    "quantity": 3
+    "quantity": 3,
+    "flavors": ""
   },
   {
     "id": 15,
@@ -17,7 +18,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "",
-    "quantity": 9
+    "quantity": 9,
+    "flavors": ""
   },
   {
     "id": 14,
@@ -27,7 +29,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "",
-    "quantity": 40
+    "quantity": 40,
+    "flavors": ""
   },
   {
     "id": 13,
@@ -37,7 +40,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "assets/prod_1293_AgACAg.jpg",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 12,
@@ -47,7 +51,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 11,
@@ -57,7 +62,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 10,
@@ -67,7 +73,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "assets/prod_1180_AgACAg.jpg",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 9,
@@ -77,7 +84,8 @@
     "category": "-",
     "tag": "NEW",
     "img": "",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 8,
@@ -87,7 +95,8 @@
     "category": "жидкости",
     "tag": "NEW",
     "img": "",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 7,
@@ -97,7 +106,8 @@
     "category": "жидкость",
     "tag": "NEW",
     "img": "assets/prod_1077_AgACAg.jpg",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 6,
@@ -107,7 +117,8 @@
     "category": "жидкость",
     "tag": "NEW",
     "img": "assets/prod_1051_AgACAg.jpg",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   },
   {
     "id": 5,
@@ -117,7 +128,8 @@
     "category": "подики",
     "tag": "ХИТ",
     "img": "",
-    "quantity": 333
+    "quantity": 333,
+    "flavors": ""
   },
   {
     "id": 4,
@@ -127,6 +139,7 @@
     "category": "жидкость",
     "tag": "NEW",
     "img": "assets/prod_207_AgACAg.jpg",
-    "quantity": 5
+    "quantity": 5,
+    "flavors": ""
   }
 ]
