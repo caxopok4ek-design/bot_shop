@@ -127,6 +127,9 @@ const tg = window.Telegram?.WebApp;
 
 if (tg) { tg.ready(); tg.expand(); }
 
+const urlParams = new URLSearchParams(window.location.search);
+let rawData = urlParams.get('data');
+
 let state = {
   currentTab: 'home',
   screen: 'home',
@@ -136,21 +139,12 @@ let state = {
   products: []
 };
 
-// Загружаем данные из файла panel_data.json
-async function loadData() {
+if (rawData) {
     try {
-        const res = await fetch(`panel_data.json?t=${Date.now()}`);
-        if (res.ok) {
-            const parsed = await res.json();
-            state.orders = parsed.orders || [];
-            state.products = parsed.products || [];
-            render();
-        } else {
-            document.getElementById('screen').innerHTML = '<div class="empty">Нет данных. Нажми в боте "Открыть веб-панель" заново.</div>';
-        }
-    } catch(e) {
-        document.getElementById('screen').innerHTML = '<div class="empty">Ошибка загрузки данных.</div>';
-    }
+        const parsed = JSON.parse(decodeURIComponent(rawData));
+        state.orders = parsed.orders || [];
+        state.products = parsed.products || [];
+    } catch(e) { console.error("Ошибка парсинга", e); }
 }
 
 function sendToBot(command, data = {}) {
@@ -302,9 +296,15 @@ function renderProducts(){
   `;
 }
 function setProductFilter(f){ productFilter=f; render(); }
+
 function deleteProduct(id) {
     if(confirm("Удалить этот товар?")) {
         sendToBot("delete_product", { id: id });
+        // Мгновенно убираем из интерфейса
+        state.products = state.products.filter(p => p.id !== id);
+        render();
+        // Уведомляем и ждем
+        alert("Товар удален! Подожди 1-2 минуты, пока GitHub обновит данные.");
     }
 }
 
@@ -332,8 +332,7 @@ function renderStats(){
   `;
 }
 
-document.getElementById('screen').innerHTML = '<div class="empty">Загрузка...</div>';
-loadData();
+render();
 </script>
 </body>
 </html>
