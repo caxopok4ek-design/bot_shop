@@ -108,6 +108,7 @@ const tabs = [
   {id:'orders', ico:'📦', label:'Заказы'},
   {id:'products', ico:'🛒', label:'Товары'},
   {id:'prizes', ico:'🎁', label:'Кейсы'},
+  {id:'promos', ico:'🎟', label:'Промо'},
 ];
 
 function renderNav(){
@@ -130,6 +131,7 @@ function render(){
   else if(s==='orders') el.innerHTML = renderOrders();
   else if(s==='products') el.innerHTML = renderProducts();
   else if(s==='prizes') el.innerHTML = renderPrizes();
+  else if(s==='promos') el.innerHTML = renderPromos();
   window.scrollTo(0,0);
 }
 
@@ -279,6 +281,43 @@ function deletePrize(id) {
     state.prizes[state.activeCase] = state.prizes[state.activeCase].filter(p => p.id !== id);
     sendToBot("update_prizes", { case_id: state.activeCase, prizes: state.prizes[state.activeCase] });
     render();
+}
+
+function renderPromos(){
+  return `
+    <div class="header"><div class="title">Промокоды</div></div>
+    <div class="content">
+      <div class="card" style="background:var(--surface3);">
+        <h4 style="margin-bottom:10px;">Создать персональный промокод</h4>
+        <input class="input" id="promoCode" placeholder="Код (напр. GALLEON10)">
+        <input class="input" id="promoDiscount" type="number" placeholder="Скидка %">
+        <input class="input" id="promoDays" type="number" placeholder="Срок действия (дней, 0 = бессрочно)">
+        <select class="input" id="promoOneTime">
+          <option value="true">Одноразовый (1 клиент)</option>
+          <option value="false">Многоразовый</option>
+        </select>
+        <button class="btn btn-primary" onclick="createPromo()">Создать</button>
+      </div>
+      
+      <p style="font-size:12px; color:var(--muted); margin-top:20px; text-align:center;">
+        После создания код отправится на сайт (1-2 минуты).<br>
+        Клиент сможет ввести его при оформлении заказа.
+      </p>
+    </div>
+  `;
+}
+
+function createPromo() {
+    const code = document.getElementById('promoCode').value.trim().toUpperCase();
+    const discount = parseInt(document.getElementById('promoDiscount').value) || 0;
+    const days = parseInt(document.getElementById('promoDays').value) || 0;
+    const isOneTime = document.getElementById('promoOneTime').value === 'true';
+    
+    if (!code || discount <= 0) return alert("Заполните код и скидку!");
+    
+    sendToBot("create_promo", { code, discount, days, is_one_time: isOneTime });
+    alert("Промокод создан! Сайт обновится через 1-2 минуты.");
+    goTab('home');
 }
 
 loadData();
